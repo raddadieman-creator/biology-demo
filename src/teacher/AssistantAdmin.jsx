@@ -24,7 +24,7 @@ export default function AssistantAdmin({ store, data, sq, reload }) {
   return (
     <div className="stack">
         <div className="spread">
-          <h3>إجابات خليّة المعدّة</h3>
+          <h3>إجابات رهف المعدّة</h3>
           <button className="btn btn-sm" onClick={() => { setForm(blank()); setFromSq(null) }}>إجابة جديدة</button>
         </div>
         {form && (

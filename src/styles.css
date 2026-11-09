@@ -1038,3 +1038,28 @@ tr.clickable { cursor: pointer; } tr.clickable:hover td { background: var(--prim
   .cm-branch::before { display: block; top: 22px; inset-inline-start: -16px; width: 16px; height: 2px; }
 }
 @media (prefers-reduced-motion: reduce) { .cmap * { animation: none !important; opacity: 1 !important; transform: none !important; } }
+
+/* البراميسيوم: يتمايل وهو يسبح، ويسرع عند الفرح */
+.atom-face.para { animation: paraSwim 3.6s ease-in-out infinite; transform-origin: 50% 50%; }
+@keyframes paraSwim { 0%, 100% { transform: rotate(-4deg) translateY(0); } 50% { transform: rotate(5deg) translateY(-2px); } }
+.buddy.walk .atom-face.para { animation: paraDart 0.6s ease-in-out infinite alternate; }
+@keyframes paraDart { from { transform: rotate(-8deg) scale(1.04, 0.96); } to { transform: rotate(6deg) scale(0.97, 1.03); } }
+.buddy.happy .atom-face.para { animation: paraSpin 0.9s ease-in-out 2; }
+@keyframes paraSpin { 0% { transform: rotate(0); } 100% { transform: rotate(360deg); } }
+.buddy-body:has(.para) { filter: drop-shadow(0 8px 16px rgba(13, 148, 136, 0.35)); }
+
+/* رهف: فراشة رقيقة ترفرف بهدوء وتطير من جهة لأخرى */
+.buddy:has(.fly) { transition: transform 5.2s cubic-bezier(0.45, 0.05, 0.35, 1); }
+.buddy-body:has(.fly) { filter: drop-shadow(0 10px 18px rgba(192, 132, 252, 0.45)); animation: flyFloat 3.6s ease-in-out infinite; transform: rotate(var(--tilt, 0deg)); transition: transform 0.8s ease; }
+.buddy.walk .buddy-body:has(.fly) { animation: flyWave 1.3s ease-in-out infinite; }
+@keyframes flyFloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -7px; } }
+@keyframes flyWave { 0%, 100% { translate: 0 0; } 25% { translate: 0 -14px; } 75% { translate: 0 10px; } }
+.atom-face.fly .wing { transform-box: fill-box; animation: flap 1.6s ease-in-out infinite; }
+.atom-face.fly .wing-l { transform-origin: 100% 50%; }
+.atom-face.fly .wing-r { transform-origin: 0% 50%; }
+.buddy.walk .atom-face.fly .wing { animation-duration: 0.7s; }
+.buddy.happy .atom-face.fly .wing { animation-duration: 0.45s; }
+@keyframes flap { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(0.45); } }
+.atom-face.fly .sp { transform-box: fill-box; transform-origin: center; animation: twinkle 2.4s ease-in-out infinite; }
+.atom-face.fly .s2 { animation-delay: 0.8s; } .atom-face.fly .s3 { animation-delay: 1.6s; }
+@keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(0.4); } 50% { opacity: 1; transform: scale(1.2); } }
