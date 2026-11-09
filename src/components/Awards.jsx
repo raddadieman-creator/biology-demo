@@ -35,8 +35,8 @@ export const Certificate = forwardRef(function Certificate({ student, titles = [
         <h2 className="cert-title">{SITE.unitTitle}</h2>
         <p className="cert-text">تشهد منصة {SITE.name} بأن الطالبة</p>
         <p className="cert-name">{student.name}</p>
-        <p className="cert-text">من فصل {student.class_name}، أتمّت دروس فصل «المفصليات» واجتازت اختباراتها بتميّز، فاستحقت لقب</p>
-        <p className="cert-badge">سفيرة عالم المفصليات</p>
+        <p className="cert-text">من فصل {student.class_name}، أتمّت دروس فصل «المفصليات» واجتازت اختباراتها بإتقان، فاستحقت</p>
+        <p className="cert-badge">مرتبة الشرف في فصل المفصليات</p>
         {titles.length > 0 && (
           <div className="cert-titles">
             {titles.map((t) => <span key={t.id} style={{ '--b': t.color }}>{t.title}</span>)}

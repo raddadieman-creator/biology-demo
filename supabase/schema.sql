@@ -140,6 +140,8 @@ create table if not exists study_files (
   created_at timestamptz default now()
 );
 alter table study_files enable row level security;
+alter table study_files add column if not exists kind text not null default 'file';
+alter table study_files add column if not exists note text default '';
 
 -- تنبيهات المعلمة للطالبات
 create table if not exists announcements (

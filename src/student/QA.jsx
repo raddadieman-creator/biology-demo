@@ -10,18 +10,19 @@ import { FileA, Img } from '../components/Media.jsx'
 import { fileKind, fmtSize, KIND_LABEL } from '../lib/files.js'
 
 export function FileCard({ f, lesson }) {
-  const k = fileKind(f.mime, f.file_name)
+  const k = f.kind === 'link' ? 'link' : fileKind(f.mime, f.file_name)
   return (
     <article className="sfile">
       {k === 'image'
         ? <FileA url={f.url} className="sfile-thumb"><Img src={f.url} className="" alt={f.title} /></FileA>
-        : <FileA url={f.url} className={`sfile-ic fk-${k}`}><Icon name="file" size={30} /><b>{KIND_LABEL[k]}</b></FileA>}
+        : <FileA url={f.url} className={`sfile-ic fk-${k}`}><Icon name={k === 'link' ? 'link' : 'file'} size={30} /><b>{KIND_LABEL[k]}</b></FileA>}
       <div className="sfile-body">
         <b>{f.title}</b>
-        <span className="small muted">{lesson ? lesson.title : 'عام للوحدة'}{f.size ? ` · ${fmtSize(f.size)}` : ''}</span>
+        {f.note && <span className="small">{f.note}</span>}
+        <span className="small muted">{lesson ? lesson.title : 'عام للفصل'}{f.size ? ` · ${fmtSize(f.size)}` : ''}</span>
         <div className="row">
-          <FileA url={f.url} className="btn btn-sm btn-primary"><Icon name="eye" /> {k === 'word' || k === 'slides' ? 'فتح' : 'عرض'}</FileA>
-          <FileA url={f.url} name={f.file_name || f.title} download className="btn btn-sm"><Icon name="download" /> تحميل</FileA>
+          <FileA url={f.url} className="btn btn-sm btn-primary"><Icon name={k === 'link' ? 'link' : 'eye'} /> {k === 'link' ? 'فتح الرابط' : k === 'word' || k === 'slides' ? 'فتح' : 'عرض'}</FileA>
+          {k !== 'link' && <FileA url={f.url} name={f.file_name || f.title} download className="btn btn-sm"><Icon name="download" /> تحميل</FileA>}
         </div>
       </div>
     </article>
@@ -31,12 +32,12 @@ export function FileCard({ f, lesson }) {
 function Files({ data }) {
   const [lesson, setLesson] = useState('')
   const files = data.files || []
-  if (!files.length) return <div className="empty">لم ترفع المعلمة ملفات بعد.</div>
+  if (!files.length) return <div className="empty">لم تُضف المعلمة مصادر بعد.</div>
   const list = files.filter((f) => !lesson || f.lesson_id === lesson)
   return (
     <div className="stack" style={{ gap: 18 }}>
       <LessonFilter lessons={data.lessons} value={lesson} onChange={setLesson} />
-      {list.length === 0 ? <div className="empty">لا توجد ملفات لهذا الدرس.</div> : (
+      {list.length === 0 ? <div className="empty">لا توجد مصادر لهذا الدرس.</div> : (
         <div className="sfile-grid">{list.map((f) => <FileCard key={f.id} f={f} lesson={data.lessons.find((l) => l.id === f.lesson_id)} />)}</div>
       )}
     </div>
@@ -254,7 +255,7 @@ export default function QA({ store, data, student, initialTab }) {
       </div>
       <div className="qa-tabs" role="tablist">
         <button role="tab" aria-selected={tab === 'bank'} onClick={() => setTab('bank')}><Icon name="cards" /> بنك المذاكرة</button>
-        <button role="tab" aria-selected={tab === 'files'} onClick={() => setTab('files')}><Icon name="file" /> ملفات المذاكرة</button>
+        <button role="tab" aria-selected={tab === 'files'} onClick={() => setTab('files')}><Icon name="file" /> مصادر المذاكرة</button>
         <button role="tab" aria-selected={tab === 'ask'} onClick={() => setTab('ask')}><Icon name="chat" /> اسألي المعلمة</button>
       </div>
       {tab === 'bank' && <Bank data={data} />}

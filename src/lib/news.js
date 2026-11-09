@@ -35,7 +35,7 @@ export function buildNews(data, { pub = [], mine = [] } = {}) {
   const pubNew = recent(pub, 'answered_at').filter((p) => !mineIds.has(p.id))
   if (pubNew.length) out.push({ id: 'pub-' + newest(pubNew, 'answered_at'), kind: 'chat', tone: 'primary', title: `${plural(pubNew.length, 'إجابة جديدة', 'إجابتان جديدتان', 'إجابات جديدة', 'إجابة جديدة')} من المعلمة`, text: pubNew[0].text, at: newest(pubNew, 'answered_at'), go: ['qa', 'ask'] })
 
-  for (const f of recent(data.files)) out.push({ id: 'f-' + f.id, kind: 'file', tone: 'primary', title: 'ملف مذاكرة جديد', text: f.title, at: f.created_at, go: ['qa', 'files'] })
+  for (const f of recent(data.files)) out.push({ id: 'f-' + f.id, kind: f.kind === 'link' ? 'link' : 'file', tone: 'primary', title: f.kind === 'link' ? 'رابط مذاكرة جديد' : 'ملف مذاكرة جديد', text: f.title, at: f.created_at, go: ['qa', 'files'] })
 
   const bank = recent(data.bank)
   if (bank.length) out.push({ id: 'b-' + newest(bank), kind: 'cards', tone: 'primary', title: `${plural(bank.length, 'سؤال جديد', 'سؤالان جديدان', 'أسئلة جديدة', 'سؤالًا جديدًا')} في بنك المذاكرة`, text: bank[0].question, at: newest(bank), go: ['qa', 'bank'] })

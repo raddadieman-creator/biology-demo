@@ -28,7 +28,7 @@ const NAV = [
   ['qa', 'سؤال وجواب', 'chat'],
   ['enrich', 'الإثراءات', 'video'],
   ['challenges', 'التحديات', 'trophy'],
-  ['leaders', 'المتميزات', 'crown'],
+  ['leaders', 'لوحة الشرف', 'crown'],
   ['achievements', 'إنجازاتي', 'medal'],
 ]
 const SECTION_OF = { lesson: 'home', quiz: 'quizzes', live: 'challenges', challenge: 'challenges' }

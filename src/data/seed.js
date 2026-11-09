@@ -4,6 +4,8 @@ import { MODEL_PARTS } from './models.js'
 
 const CH = 'الفصل الثامن: المفصليات'
 const yt = (id) => `https://youtu.be/${id}`
+// كل درس له عدة نماذج ثلاثية الأبعاد، ونصوص أجزائها تعدّلها المعلمة
+const mk = (kind) => ({ kind, parts: MODEL_PARTS[kind].parts.map((p) => ({ ...p })) })
 
 export const LESSONS = [
   {
@@ -13,7 +15,7 @@ export const LESSONS = [
     title: 'خصائص المفصليات',
     summary: 'أجسام مقسّمة، وهيكل خارجي صلب، وزوائد مفصلية: كيف جعلت هذه الصفات المفصليات أكبر مجموعات الحيوانات وأوسعها انتشارًا؟',
     illustration: 'arthropod',
-    model: { kind: 'insect', parts: MODEL_PARTS.insect.parts.map((p) => ({ ...p })) },
+    model: ['insect', 'inside'].map(mk),
     sections: [
       {
         heading: 'المفصليات: أكبر مجموعات الحيوانات',
@@ -104,7 +106,7 @@ export const LESSONS = [
     title: 'تنوع المفصليات',
     summary: 'تُصنّف المفصليات بحسب تركيب قطع أجسامها وأنواع زوائدها وأجزاء فمها: تعرّفي القشريات والعناكب وأشباهها.',
     illustration: 'diversity',
-    model: { kind: 'spider', parts: MODEL_PARTS.spider.parts.map((p) => ({ ...p })) },
+    model: ['crayfish', 'spider'].map(mk),
     sections: [
       {
         heading: 'كيف تُصنّف المفصليات؟',
@@ -173,7 +175,7 @@ export const LESSONS = [
     title: 'الحشرات وأشباهها',
     summary: 'لماذا تُعد الحشرات أكثر المفصليات تنوعًا وانتشارًا؟ تكيفاتها، والتحول، ومجتمعاتها، وعلاقتها بالإنسان.',
     illustration: 'insects',
-    model: { kind: 'metamorphosis', parts: MODEL_PARTS.metamorphosis.parts.map((p) => ({ ...p })) },
+    model: ['metamorphosis', 'hemi', 'myria'].map(mk),
     sections: [
       {
         heading: 'تنوع الحشرات وصفاتها الخارجية',

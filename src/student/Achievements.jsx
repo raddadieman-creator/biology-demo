@@ -40,7 +40,7 @@ export default function Achievements({ data, student, go }) {
         <div className="stack" style={{ gap: 6 }}>
           <span className="eyebrow">إنجازاتي</span>
           <h1>ألقابك يا {student.name.split(' ')[0]}</h1>
-          <p className="muted">كل لقب تحصلين عليه حين تتقنين جزءًا من الفصل، وعند إتقان الدروس الثلاثة تحصلين على الشهادة.</p>
+          <p className="muted">ألقاب علمية تُمنح عند إتقان كل جزء من الفصل، وشهادة مرتبة الشرف عند إتقان الدروس الثلاثة.</p>
         </div>
         <div className="ach-count"><b className="num">{earned.length}</b><span>من {badges.length} ألقاب</span></div>
       </section>

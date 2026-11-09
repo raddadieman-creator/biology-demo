@@ -1,10 +1,10 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import Icon from '../components/Icons.jsx'
-import { Illustration } from '../components/Illustrations.jsx'
 import { activityDone, checkAnswer, markActivity, markLesson, markVideo, saveCheck, videoSeen } from '../lib/mine.js'
 import { track } from '../lib/track.js'
 import { cheer } from '../components/Buddy.jsx'
-import { ORD, themeFor, ytThumb } from '../lib/theme.js'
+import { modelsOf, ORD, themeFor, ytThumb } from '../lib/theme.js'
+import { MODEL_PARTS } from '../data/models.js'
 import { FileCard } from './QA.jsx'
 
 const Scene3D = lazy(() => import('../components/Scene3D.jsx'))
@@ -25,6 +25,28 @@ export function VideoCard({ video, onOpen, compact }) {
         <small>{compact ? video.lessonTitle : <><Icon name="video" size={14} /> شرح قصير على يوتيوب</>}</small>
       </span>
     </a>
+  )
+}
+
+// معرض النماذج ثلاثية الأبعاد في الدرس: تختار الطالبة النموذج ثم تضغط على أجزائه
+function Models({ models, color, i, setI }) {
+  if (!models.length) return null
+  const m = models[Math.min(i, models.length - 1)]
+  return (
+    <section id="models" className="models" style={{ '--c': color, scrollMarginTop: 90 }} aria-label="النماذج ثلاثية الأبعاد">
+      {models.length > 1 && (
+        <div className="model-tabs" role="tablist">
+          {models.map((x, k) => (
+            <button key={x.kind} role="tab" aria-selected={k === i} onClick={() => setI(k)}>
+              <span className="num">{k + 1}</span>{MODEL_PARTS[x.kind]?.title || x.kind}
+            </button>
+          ))}
+        </div>
+      )}
+      <Suspense fallback={<div className="m3-stage" style={{ borderRadius: 26 }} />}>
+        <Scene3D key={m.kind} model={m} />
+      </Suspense>
+    </section>
   )
 }
 
@@ -96,6 +118,8 @@ function SortActivity({ lessonId, activity, onDone }) {
 export default function Lesson({ data, id, go, store, student }) {
   const idx = data.lessons.findIndex((l) => l.id === id)
   const lesson = data.lessons[idx]
+  const [mi, setMi] = useState(0)
+  useEffect(() => { setMi(0) }, [id])
   useEffect(() => {
     if (!lesson) return
     markLesson(lesson.id)
@@ -110,7 +134,7 @@ export default function Lesson({ data, id, go, store, student }) {
 
   return (
     <main className="wrap" style={{ '--c': t.c }}>
-      <section className="lesson-hero" style={{ '--c': t.c }}>
+      <section className="lesson-hero solo" style={{ '--c': t.c }}>
         <div className="txt">
           <span className="eyebrow">الدرس {ORD[idx] || idx + 1} · {lesson.unit}</span>
           <h1>{lesson.title}</h1>
@@ -120,14 +144,17 @@ export default function Lesson({ data, id, go, store, student }) {
             <a className="btn" href="#activity"><Icon name="sort" /> النشاط</a>
           </div>
         </div>
-        {lesson.illustration && <div className="fig"><Illustration name={lesson.illustration} /></div>}
+        <div className="hero-models">
+          <span className="small muted">نماذج ثلاثية الأبعاد تفاعلية في هذا الدرس</span>
+          {modelsOf(lesson).map((x, k) => (
+            <button key={x.kind} className="chip" onClick={() => { setMi(k); document.getElementById('models')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>
+              <Icon name="cube" size={14} /> {MODEL_PARTS[x.kind]?.title}
+            </button>
+          ))}
+        </div>
       </section>
 
-      {lesson.model?.kind && (
-        <Suspense fallback={<div className="m3-stage" style={{ borderRadius: 26 }} />}>
-          <Scene3D model={lesson.model} />
-        </Suspense>
-      )}
+      <Models key={lesson.id} models={modelsOf(lesson)} color={t.c} i={mi} setI={setMi} />
 
       <div className="lesson-layout">
         <nav className="toc" aria-label="محتويات الدرس">
@@ -175,7 +202,7 @@ export default function Lesson({ data, id, go, store, student }) {
 
           {(data.files || []).some((f) => f.lesson_id === lesson.id) && (
             <section className="stack">
-              <h2>ملفات من المعلمة</h2>
+              <h2>مصادر من المعلمة</h2>
               <div className="sfile-grid">{data.files.filter((f) => f.lesson_id === lesson.id).map((f) => <FileCard key={f.id} f={f} lesson={lesson} />)}</div>
             </section>
           )}

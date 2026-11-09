@@ -1,3 +1,5 @@
+import { modelsOf } from '../lib/theme.js'
+import { MODEL_PARTS } from '../data/models.js'
 import { FileA } from '../components/Media.jsx'
 import { useEffect, useState } from 'react'
 import { uid } from '../lib/store.js'
@@ -125,17 +127,20 @@ export default function LessonsAdmin({ store, data, reload }) {
                 </div>
               </div>
             ))}
-            {draft.model?.parts?.length > 0 && (
-              <div className="item" style={{ background: 'var(--surface-2)' }}>
-                <b>معلومات النموذج ثلاثي الأبعاد</b>
-                <span className="small muted">تظهر عند ضغط الطالبة على كل جزء من النموذج.</span>
-                {draft.model.parts.map((pt, k) => (
-                  <label key={pt.key} className="field" htmlFor={`la-m-${pt.key}`}>{pt.title}
-                    <textarea id={`la-m-${pt.key}`} className="input" rows={3} value={pt.text} onChange={(e) => set('model', { ...draft.model, parts: draft.model.parts.map((x, j) => (j === k ? { ...x, text: e.target.value } : x)) })} />
+            {modelsOf(draft).map((md, mi) => (
+              <div key={md.kind} className="item" style={{ background: 'var(--surface-2)' }}>
+                <b>النموذج ثلاثي الأبعاد: {MODEL_PARTS[md.kind]?.title || md.kind}</b>
+                <span className="small muted">تظهر هذه المعلومات عند ضغط الطالبة على كل جزء من النموذج.</span>
+                {md.parts.map((pt, k) => (
+                  <label key={pt.key} className="field" htmlFor={`la-m-${md.kind}-${pt.key}`}>{pt.title}
+                    <textarea id={`la-m-${md.kind}-${pt.key}`} className="input" rows={3} value={pt.text} onChange={(e) => {
+                      const list = modelsOf(draft).map((m, j) => (j === mi ? { ...m, parts: m.parts.map((x, q) => (q === k ? { ...x, text: e.target.value } : x)) } : m))
+                      set('model', list)
+                    }} />
                   </label>
                 ))}
               </div>
-            )}
+            ))}
             <div className="row">
               <button className="btn" onClick={() => set('sections', [...draft.sections, { heading: '', body: '' }])}>إضافة فقرة</button>
               <button className="btn btn-primary" onClick={save}>حفظ الدرس</button>

@@ -25,7 +25,7 @@ export default function Announce({ store, data, reload }) {
           <textarea id="an-text" className="input" rows={2} maxLength={600} value={text} onChange={(e) => setText(e.target.value)} placeholder="مثال: اختبار الدرس الثاني يوم الأحد، راجعن بنك المذاكرة" />
           <button className="btn btn-sun" disabled={busy || text.trim().length < 2}><Icon name="send" /> {done ? 'أُرسل' : busy ? 'جارٍ الإرسال…' : 'إرسال'}</button>
         </div>
-        <small className="muted">ما تضيفينه من ملفات وأسئلة واختبارات وإثراءات وإجابات يصل للطالبات تنبيهًا تلقائيًا.</small>
+        <small className="muted">ما تضيفينه من ملفات وروابط وأسئلة واختبارات وإثراءات وإجابات يصل للطالبات تنبيهًا تلقائيًا.</small>
         {err && <div className="notice error" role="alert">{err}</div>}
       </form>
       {list.length > 0 && (

@@ -441,13 +441,338 @@ function buildMeta(scene) {
   }
 }
 
+/* ---------------- الأجهزة الداخلية للحشرة */
+function buildInside(scene) {
+  lights(scene)
+  const { mat, highlight } = partMats()
+  const pick = [], anchors = {}
+  const g = new THREE.Group()
+  scene.add(g)
+  // جسم شفاف يظهر ما بداخله
+  const shellMat = mat('body', '#bbf7d0', { transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide, roughness: 0.2 })
+  const head = ellipsoid(0.55, 0.6, 0.5, shellMat); head.position.set(2.05, 0.35, 0)
+  const thorax = ellipsoid(0.8, 0.62, 0.58, shellMat); thorax.position.set(1.0, 0.3, 0)
+  const abd = ellipsoid(1.75, 0.55, 0.52, shellMat); abd.position.set(-1.25, 0.25, 0)
+  g.add(head, thorax, abd)
+  // الدماغ والحبل العصبي البطني بعقده
+  const brain = tag(ellipsoid(0.2, 0.14, 0.24, mat('brain', '#f472b6')), 'brain', pick)
+  brain.position.set(2.05, 0.6, 0); g.add(brain)
+  const nervePts = [V(2.0, 0.45, 0), V(1.9, -0.05, 0), V(1.2, -0.12, 0), V(0.2, -0.12, 0), V(-1.2, -0.1, 0), V(-2.6, 0.05, 0)]
+  g.add(tag(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(nervePts), 60, 0.03, 6), mat('nerve', '#a855f7')), 'nerve', pick))
+  ;[1.75, 1.25, 0.8, 0.2, -0.4, -1.0, -1.6, -2.2].forEach((x) => {
+    const gn = tag(new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), mat('nerve', '#a855f7')), 'nerve', pick)
+    gn.position.set(x, x > 1.5 ? -0.08 : -0.12, 0); g.add(gn)
+  })
+  // القناة الهضمية
+  const gutPts = [V(2.35, 0.05, 0), V(2.0, 0.15, 0), V(1.5, 0.25, 0), V(0.9, 0.3, 0), V(0.2, 0.22, 0), V(-0.6, 0.25, 0), V(-1.4, 0.2, 0), V(-2.2, 0.22, 0), V(-2.95, 0.25, 0)]
+  g.add(tag(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(gutPts), 80, 0.09, 10), mat('gut', '#fbbf24')), 'gut', pick))
+  const crop = tag(ellipsoid(0.32, 0.2, 0.2, mat('gut', '#f59e0b')), 'gut', pick); crop.position.set(0.95, 0.3, 0); g.add(crop)
+  const mid = tag(ellipsoid(0.55, 0.17, 0.17, mat('gut', '#f59e0b')), 'gut', pick); mid.position.set(-0.3, 0.23, 0); g.add(mid)
+  // أنابيب ملبيجي تخرج عند بداية الأمعاء الخلفية
+  for (let k = 0; k < 8; k++) {
+    const a = (k / 8) * Math.PI * 2
+    const pts = []
+    for (let u = 0; u <= 10; u++) {
+      const t = u / 10
+      pts.push(V(-0.85 - t * 1.3, 0.22 + Math.sin(a) * 0.3 * t + Math.sin(t * 9 + k) * 0.05, Math.cos(a) * 0.3 * t + Math.cos(t * 8 + k) * 0.04))
+    }
+    g.add(tag(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 30, 0.022, 5), mat('malp', '#eab308')), 'malp', pick))
+  }
+  // القلب الأنبوبي على الجانب الظهري
+  const heartMat = mat('heart', '#ef4444')
+  const heartPts = [V(-2.7, 0.62, 0), V(-1.5, 0.7, 0), V(-0.3, 0.68, 0), V(0.8, 0.78, 0), V(1.8, 0.75, 0)]
+  const heart = tag(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(heartPts), 50, 0.07, 8), heartMat), 'heart', pick)
+  g.add(heart)
+  const chambers = []
+  ;[-2.3, -1.7, -1.1, -0.5].forEach((x) => { const c = tag(ellipsoid(0.16, 0.1, 0.1, heartMat), 'heart', pick); c.position.set(x, 0.68, 0); g.add(c); chambers.push(c) })
+  // الثغور التنفسية والقصبات الهوائية المتفرعة
+  const trMat = mat('trach', '#60a5fa', { transparent: true, opacity: 0.9 })
+  ;[1.0, 0.35, -0.3, -0.95, -1.6, -2.25].forEach((x, i) => {
+    for (const z of [-1, 1]) {
+      const rz = i === 0 ? 0.55 : 0.48 - Math.max(0, i - 2) * 0.03
+      const sp = tag(new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.018, 6, 12), mat('spir', '#1e3a8a')), 'spir', pick)
+      sp.position.set(x, 0.12, z * rz); sp.rotation.y = Math.PI / 2; g.add(sp)
+      const main = [V(x, 0.12, z * rz), V(x, 0.15, z * rz * 0.55), V(x + 0.1, 0.35, z * 0.12)]
+      g.add(tag(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(main), 12, 0.022, 5), trMat), 'trach', pick))
+      for (const dy of [-0.2, 0.25]) {
+        const br = [V(x, 0.15, z * rz * 0.55), V(x + 0.18, 0.15 + dy, z * rz * 0.4), V(x + 0.3, 0.15 + dy * 1.3, z * rz * 0.2)]
+        g.add(tag(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(br), 8, 0.012, 4), trMat), 'trach', pick))
+      }
+    }
+  })
+  // خط طولي يصل القصبات
+  for (const z of [-1, 1]) g.add(tag(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(1.0, 0.15, z * 0.3), V(-0.3, 0.15, z * 0.28), V(-2.25, 0.15, z * 0.24)]), 30, 0.02, 5), trMat), 'trach', pick))
+
+  anchors.body = { obj: g, at: V(-2.0, 0.85, 0) }
+  anchors.heart = { obj: g, at: V(-0.9, 0.9, 0) }
+  anchors.gut = { obj: g, at: V(0.6, 0.45, 0.2) }
+  anchors.malp = { obj: g, at: V(-1.7, 0.0, 0.35) }
+  anchors.trach = { obj: g, at: V(-0.3, 0.45, 0.6) }
+  anchors.spir = { obj: g, at: V(-1.6, 0.05, 0.6) }
+  anchors.brain = { obj: g, at: V(2.05, 0.85, 0) }
+  anchors.nerve = { obj: g, at: V(1.4, -0.35, 0.1) }
+  return {
+    camera: [0.6, 2.2, 5.6],
+    target: [-0.3, 0.25, 0],
+    pick, anchors, highlight,
+    update(t, dt, play) {
+      if (!play) return
+      g.rotation.y = Math.sin(t * 0.3) * 0.5
+      const s = 1 + Math.max(0, Math.sin(t * 5)) * 0.25
+      chambers.forEach((c, i) => { const k = 1 + Math.max(0, Math.sin(t * 5 - i * 0.6)) * 0.35; c.scale.set(0.16, 0.1 * k, 0.1 * k) })
+      heart.scale.set(1, s * 0.95 + 0.05, s * 0.95 + 0.05)
+    },
+  }
+}
+
+/* ---------------- جراد البحر */
+function buildCrayfish(scene) {
+  lights(scene)
+  const { mat, highlight } = partMats()
+  const pick = [], anchors = {}
+  const cf = new THREE.Group()
+  cf.rotation.y = -0.5
+  scene.add(cf)
+  const sand = leaf(8, 3.4, '#fde68a'); sand.position.y = -0.62; scene.add(sand)
+  const red = '#ea580c', dark = '#9a3412'
+  // الرأس-صدر بدرعه
+  const ceph = tag(ellipsoid(1.05, 0.48, 0.55, mat('ceph', red)), 'ceph', pick)
+  ceph.position.set(0.85, 0.15, 0); cf.add(ceph)
+  const rostrum = tag(new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.5, 8), mat('ceph', red)), 'ceph', pick)
+  rostrum.position.set(2.05, 0.22, 0); rostrum.rotation.z = -Math.PI / 2; cf.add(rostrum)
+  // الخياشيم تحت حافة الدرع
+  for (const z of [-1, 1]) for (let i = 0; i < 4; i++) {
+    const gl = tag(ellipsoid(0.12, 0.16, 0.05, mat('gills', '#fda4af')), 'gills', pick)
+    gl.position.set(0.35 + i * 0.3, -0.18, z * 0.52); gl.rotation.x = z * 0.4; cf.add(gl)
+  }
+  // البطن من ست قطع والمروحة الذيلية
+  const abdMat = mat('abd', '#f97316')
+  for (let i = 0; i < 6; i++) {
+    const r = 0.42 - i * 0.035
+    const sg = tag(ellipsoid(0.24, r * 0.85, r, abdMat), 'abd', pick)
+    sg.position.set(-0.32 - i * 0.36, 0.12 - i * 0.03, 0); cf.add(sg)
+    // العوامات القدمية تحت كل قطعة
+    if (i < 5) for (const z of [-1, 1]) {
+      const sw = tag(rod(V(-0.32 - i * 0.36, -0.1, z * 0.12), V(-0.36 - i * 0.36, -0.42, z * 0.24), 0.03, mat('swim', '#fdba74')), 'swim', pick)
+      cf.add(sw)
+    }
+  }
+  const tailMat = mat('tail', '#fb923c', { side: THREE.DoubleSide })
+  ;[-0.55, -0.2, 0.2, 0.55].concat([0]).forEach((z, k) => {
+    const fan = tag(ellipsoid(0.32, 0.04, k === 4 ? 0.16 : 0.13, tailMat), 'tail', pick)
+    fan.position.set(-2.62, -0.05, z * 0.6); fan.rotation.y = z * 0.6; cf.add(fan)
+  })
+  // العيون المركبة على سويقات
+  for (const z of [-1, 1]) {
+    cf.add(tag(rod(V(1.85, 0.3, z * 0.12), V(2.0, 0.45, z * 0.28), 0.035, mat('eyes', dark)), 'eyes', pick))
+    const e = tag(new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 10), mat('eyes', '#111827', { roughness: 0.1 })), 'eyes', pick)
+    e.position.set(2.02, 0.48, z * 0.3); cf.add(e)
+  }
+  // زوجان من قرون الاستشعار
+  const antG = new THREE.Group(); cf.add(antG)
+  for (const z of [-1, 1]) {
+    const longC = new THREE.CatmullRomCurve3([V(1.9, 0.2, z * 0.2), V(2.6, 0.45, z * 0.6), V(3.3, 0.3, z * 1.2), V(3.9, 0.1, z * 1.7)])
+    antG.add(tag(new THREE.Mesh(new THREE.TubeGeometry(longC, 30, 0.022, 5), mat('ant', dark)), 'ant', pick))
+    const shortC = new THREE.CatmullRomCurve3([V(1.95, 0.3, z * 0.08), V(2.35, 0.55, z * 0.2), V(2.6, 0.6, z * 0.3)])
+    antG.add(tag(new THREE.Mesh(new THREE.TubeGeometry(shortC, 12, 0.018, 5), mat('ant', '#c2410c')), 'ant', pick))
+  }
+  // القدمان الكلابيتان
+  const claws = []
+  const chMat = mat('chela', '#dc2626')
+  for (const z of [-1, 1]) {
+    const arm = new THREE.Group(); cf.add(arm)
+    limb([V(1.5, -0.1, z * 0.4), V(1.9, -0.1, z * 0.85), V(2.5, -0.05, z * 1.0)], 0.07, chMat, arm, 'chela', pick)
+    const palm = tag(ellipsoid(0.42, 0.14, 0.2, chMat), 'chela', pick); palm.position.set(2.85, -0.05, z * 1.05); arm.add(palm)
+    const fixed = tag(new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.55, 8), chMat), 'chela', pick)
+    fixed.position.set(3.45, -0.05, z * 1.0); fixed.rotation.z = -Math.PI / 2; arm.add(fixed)
+    const finger = new THREE.Group(); finger.position.set(3.2, -0.05, z * 1.13); arm.add(finger)
+    const mov = tag(new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.5, 8), chMat), 'chela', pick)
+    mov.position.set(0.25, 0, 0); mov.rotation.z = -Math.PI / 2; finger.add(mov)
+    claws.push([finger, z])
+  }
+  // أربعة أزواج من أرجل المشي
+  const legMat = mat('legs', dark)
+  for (const z of [-1, 1]) for (let i = 0; i < 4; i++) {
+    const x = 1.25 - i * 0.28
+    limb([V(x, -0.2, z * 0.4), V(x + 0.05, 0.05, z * 0.85), V(x - 0.05, -0.58, z * 1.15)], 0.035, legMat, cf, 'legs', pick)
+  }
+  anchors.ceph = { obj: cf, at: V(0.85, 0.75, 0) }
+  anchors.abd = { obj: cf, at: V(-1.2, 0.65, 0) }
+  anchors.ant = { obj: cf, at: V(3.7, 0.35, -1.6) }
+  anchors.eyes = { obj: cf, at: V(2.05, 0.75, 0.3) }
+  anchors.chela = { obj: cf, at: V(3.1, 0.25, 1.1) }
+  anchors.legs = { obj: cf, at: V(0.7, -0.45, 1.2) }
+  anchors.swim = { obj: cf, at: V(-1.3, -0.5, 0.35) }
+  anchors.gills = { obj: cf, at: V(0.6, -0.25, 0.65) }
+  anchors.tail = { obj: cf, at: V(-2.7, 0.25, 0) }
+  const swims = cf.children.filter((m) => m.userData.key === 'swim')
+  return {
+    camera: [1.6, 3.4, 6.6],
+    target: [0.4, 0, 0],
+    pick, anchors, highlight,
+    update(t, dt, play) {
+      if (!play) return
+      cf.rotation.y = -0.5 + Math.sin(t * 0.25) * 0.35
+      for (const [f, z] of claws) f.rotation.y = z * (0.15 + Math.max(0, Math.sin(t * 1.6)) * 0.35)
+      antG.rotation.y = Math.sin(t * 1.2) * 0.04
+      swims.forEach((m, i) => { m.rotation.x = Math.sin(t * 4 + i * 0.5) * 0.12 })
+    },
+  }
+}
+
+/* ---------------- جرادة مبسطة تُستعمل في التحول غير الكامل */
+function makeHopper(mat, key, wings) {
+  const h = new THREE.Group()
+  const body = mat(key, '#65a30d'), leg = mat(key, '#3f6212')
+  const head = ellipsoid(0.3, 0.34, 0.27, body); head.position.set(1.1, 0.25, 0); h.add(head)
+  const th = ellipsoid(0.42, 0.32, 0.3, body); th.position.set(0.55, 0.22, 0); h.add(th)
+  for (let i = 0; i < 6; i++) { const sg = ellipsoid(0.15, 0.27 - i * 0.02, 0.25 - i * 0.02, body); sg.position.set(0.15 - i * 0.22, 0.2, 0); h.add(sg) }
+  for (const z of [-1, 1]) {
+    const e = ellipsoid(0.09, 0.12, 0.06, mat(key, '#1a2e05')); e.position.set(1.18, 0.35, z * 0.2); h.add(e)
+    h.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(1.2, 0.5, z * 0.08), V(1.5, 0.95, z * 0.2), V(1.9, 1.15, z * 0.35)]), 12, 0.018, 4), leg))
+    for (const [a, b, c] of [[[0.8, 0.05, z * 0.18], [0.95, -0.2, z * 0.4], [1.05, -0.45, z * 0.5]], [[0.5, 0.0, z * 0.2], [0.45, -0.25, z * 0.45], [0.3, -0.45, z * 0.55]], [[0.35, 0.1, z * 0.2], [-0.35, 0.65, z * 0.35], [-0.65, -0.45, z * 0.38]]]) {
+      h.add(rod(V(...a), V(...b), 0.035, leg)); h.add(rod(V(...b), V(...c), 0.03, leg))
+    }
+    if (wings) {
+      const geo = wingShape(wings === 'full' ? 1.6 : 0.55, wings === 'full' ? 0.45 : 0.22)
+      geo.rotateY(Math.PI); geo.rotateX(Math.PI + z * 0.75)
+      const w = new THREE.Mesh(geo, mat(key, wings === 'full' ? '#bef264' : '#a3e635', { transparent: true, opacity: 0.85, side: THREE.DoubleSide }))
+      w.position.set(0.6, 0.5, z * 0.05); h.add(w)
+    }
+  }
+  h.traverse((o) => { if (o.isMesh) o.userData.key = key })
+  return h
+}
+
+/* ---------------- التحول غير الكامل */
+function buildHemi(scene) {
+  lights(scene)
+  const { mat, highlight } = partMats()
+  const pick = [], anchors = {}
+  const ring = new THREE.Group(); scene.add(ring)
+  const base = tag(new THREE.Mesh(new THREE.CylinderGeometry(3.0, 3.1, 0.14, 64), mat('cycle', '#ecfccb')), 'cycle', pick)
+  base.position.y = -0.6; ring.add(base)
+  const R = 2.15
+  const at = (i) => { const a = Math.PI / 2 - i * (Math.PI / 2); return V(Math.cos(a) * R, 0, Math.sin(a) * R) }
+  const arrowMat = mat('cycle', '#65a30d')
+  for (let i = 0; i < 4; i++) {
+    const a0 = Math.PI / 2 - i * (Math.PI / 2) - 0.45, a1 = a0 - (Math.PI / 2 - 0.9)
+    const pts = []
+    for (let k = 0; k <= 16; k++) { const a = a0 + (a1 - a0) * (k / 16); pts.push(V(Math.cos(a) * R, -0.42, Math.sin(a) * R)) }
+    ring.add(tag(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 24, 0.045, 8), arrowMat), 'cycle', pick))
+    const head = tag(new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.3, 12), arrowMat), 'cycle', pick)
+    head.position.copy(pts[16]); head.quaternion.setFromUnitVectors(V(0, 1, 0), pts[16].clone().sub(pts[15]).normalize()); ring.add(head)
+  }
+  // كتلة البيض في التربة
+  const eggG = new THREE.Group(); eggG.position.copy(at(0)); ring.add(eggG)
+  const soil = tag(new THREE.Mesh(new THREE.SphereGeometry(0.6, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat('egg', '#a16207', { roughness: 0.95 })), 'egg', pick)
+  soil.position.y = -0.53; soil.scale.set(1.2, 0.5, 1); eggG.add(soil)
+  for (let i = 0; i < 9; i++) {
+    const e = tag(ellipsoid(0.06, 0.16, 0.06, mat('egg', '#fde68a')), 'egg', pick)
+    e.position.set(-0.2 + (i % 3) * 0.2, -0.28, -0.2 + Math.floor(i / 3) * 0.2); e.rotation.z = 0.2; eggG.add(e)
+  }
+  const place = (obj, i, s, rot = 0) => { obj.scale.setScalar(s); obj.position.copy(at(i)).setY(-0.38 + 0.45 * s); obj.rotation.y = rot; ring.add(obj); return obj }
+  const n1 = place(makeHopper(mat, 'nymph', null), 1, 0.5, Math.PI)
+  const n2 = place(makeHopper(mat, 'nymph', 'pads'), 2, 0.75, -Math.PI / 2)
+  n2.traverse((o) => { if (o.isMesh) pick.push(o) }); n1.traverse((o) => { if (o.isMesh) pick.push(o) })
+  // جلد الانسلاخ الفارغ قرب الحورية
+  const skin = makeHopper((k, c, extra = {}) => mat('molt', '#d9f99d', { transparent: true, opacity: 0.45, depthWrite: false, ...extra }), 'molt', null)
+  skin.traverse((o) => { if (o.isMesh) { o.userData.key = 'molt'; pick.push(o) } })
+  skin.scale.setScalar(0.55); skin.position.copy(at(2)).add(V(0.9, -0.45, 0.7)); skin.rotation.set(0, -1.2, 0.15); ring.add(skin)
+  const adult = place(makeHopper(mat, 'adult', 'full'), 3, 0.8, 0)
+  adult.traverse((o) => { if (o.isMesh) pick.push(o) })
+
+  const lab = (i, y) => at(i).clone().setY(y)
+  anchors.egg = { obj: ring, at: lab(0, 0.25) }
+  anchors.nymph = { obj: ring, at: lab(1, 0.6) }
+  anchors.molt = { obj: ring, at: at(2).clone().add(V(0.9, 0.05, 0.7)) }
+  anchors.adult = { obj: ring, at: lab(3, 1.1) }
+  anchors.cycle = { obj: ring, at: V(0, -0.2, 0) }
+  return {
+    camera: [0, 3.6, 7.2],
+    target: [0, 0.2, 0],
+    pick, anchors, highlight,
+    update(t, dt, play) {
+      if (!play) return
+      ring.rotation.y += dt * 0.18
+      n1.position.y = at(1).y - 0.38 + 0.45 * 0.5 + Math.max(0, Math.sin(t * 3)) * 0.12
+      adult.position.y = -0.38 + 0.45 * 0.8 + Math.max(0, Math.sin(t * 2 + 1)) * 0.06
+    },
+  }
+}
+
+/* ---------------- ذوات الأرجل المئة والألف */
+function buildMyria(scene) {
+  lights(scene)
+  const { mat, highlight } = partMats()
+  const pick = [], anchors = {}
+  const ground = leaf(8.5, 3.6, '#d6d3d1'); ground.position.y = -0.4; scene.add(ground)
+  // ذوات الأرجل المئة: جسم مسطح، زوج أرجل طويلة في كل قطعة
+  const centi = new THREE.Group(); centi.position.set(0, 0, -0.85); scene.add(centi)
+  const cBody = mat('centi', '#b45309'), cLeg = mat('cleg', '#f59e0b')
+  const cLegs = []
+  const N = 15
+  for (let i = 0; i < N; i++) {
+    const x = 2.2 - i * 0.3
+    const sg = tag(ellipsoid(0.15, 0.07, 0.2, cBody), 'centi', pick)
+    sg.position.set(x, -0.18, 0); centi.add(sg)
+    for (const z of [-1, 1]) {
+      const lg = new THREE.Group(); lg.position.set(x, -0.2, z * 0.18); centi.add(lg)
+      lg.add(tag(rod(V(0, 0, 0), V(-0.05, 0.0, z * 0.34), 0.022, cLeg), 'cleg', pick))
+      lg.add(tag(rod(V(-0.05, 0.0, z * 0.34), V(-0.14, -0.2, z * 0.5), 0.018, cLeg), 'cleg', pick))
+      cLegs.push([lg, i, z])
+    }
+  }
+  const cHead = tag(ellipsoid(0.17, 0.08, 0.2, mat('centi', '#92400e')), 'centi', pick); cHead.position.set(2.5, -0.17, 0); centi.add(cHead)
+  for (const z of [-1, 1]) {
+    centi.add(tag(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(2.62, -0.15, z * 0.06), V(3.0, 0.0, z * 0.3), V(3.5, 0.05, z * 0.6)]), 16, 0.016, 4), mat('ant', '#78350f')), 'ant', pick))
+    const cl = tag(new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.28, 8), mat('claw', '#dc2626')), 'claw', pick)
+    cl.position.set(2.66, -0.23, z * 0.1); cl.rotation.set(z * 0.6, 0, -Math.PI / 2); centi.add(cl)
+  }
+  // ذوات الأرجل الألف: جسم أسطواني، زوجان قصيران في كل قطعة
+  const milli = new THREE.Group(); milli.position.set(0, 0, 1.05); scene.add(milli)
+  const mBody = mat('milli', '#3f3f46'), mLeg = mat('mleg', '#d6d3d1')
+  const mLegs = []
+  const M = 18
+  for (let i = 0; i < M; i++) {
+    const x = 2.1 - i * 0.24
+    const sg = tag(new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 12), i % 2 ? mBody : mat('milli', '#52525b')), 'milli', pick)
+    sg.scale.set(0.75, 1, 1); sg.position.set(x, -0.02, 0); milli.add(sg)
+    for (const z of [-1, 1]) for (const dx of [-0.06, 0.06]) {
+      const lg = tag(rod(V(x + dx, -0.12, z * 0.1), V(x + dx - 0.02, -0.38, z * 0.2), 0.014, mLeg), 'mleg', pick)
+      milli.add(lg); mLegs.push([lg, i])
+    }
+  }
+  const mHead = tag(new THREE.Mesh(new THREE.SphereGeometry(0.19, 16, 12), mat('milli', '#27272a')), 'milli', pick); mHead.position.set(2.38, -0.04, 0); milli.add(mHead)
+  for (const z of [-1, 1]) milli.add(tag(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(2.5, 0, z * 0.08), V(2.68, 0.1, z * 0.16), V(2.78, 0.05, z * 0.22)]), 8, 0.015, 4), mat('ant', '#27272a')), 'ant', pick))
+
+  anchors.centi = { obj: centi, at: V(0.6, 0.15, 0) }
+  anchors.cleg = { obj: centi, at: V(-1.6, 0.05, -0.55) }
+  anchors.claw = { obj: centi, at: V(2.8, -0.45, 0.2) }
+  anchors.milli = { obj: milli, at: V(0.2, 0.42, 0) }
+  anchors.mleg = { obj: milli, at: V(-1.6, -0.35, 0.35) }
+  anchors.ant = { obj: centi, at: V(3.5, 0.3, 0.6) }
+  return {
+    camera: [0.4, 3.6, 5.8],
+    target: [0.4, -0.2, 0.1],
+    pick, anchors, highlight,
+    update(t, dt, play) {
+      if (!play) return
+      for (const [lg, i, z] of cLegs) lg.rotation.y = Math.sin(t * 6 - i * 0.7) * 0.35 * z
+      for (const [lg, i] of mLegs) lg.rotation.z = Math.sin(t * 3 - i * 0.5) * 0.04
+      centi.position.x = Math.sin(t * 0.4) * 0.3
+      milli.position.x = Math.sin(t * 0.2 + 1) * 0.15
+    },
+  }
+}
+
 function hexToRgba(hex) {
   const n = parseInt(hex.slice(1), 16)
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},1)`
 }
 
 const DARK = new Set([])
-const BUILDERS = { insect: buildInsect, spider: buildSpider, metamorphosis: buildMeta }
+const BUILDERS = { insect: buildInsect, inside: buildInside, crayfish: buildCrayfish, spider: buildSpider, metamorphosis: buildMeta, hemi: buildHemi, myria: buildMyria }
 
 /* ---------------- المكوّن */
 export default function Scene3D({ model }) {

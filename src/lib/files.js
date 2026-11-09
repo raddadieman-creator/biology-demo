@@ -73,5 +73,5 @@ export function fileKind(mime = '', name = '') {
   if (/presentation|powerpoint/.test(mime) || /\.pptx?$/.test(n)) return 'slides'
   return 'file'
 }
-export const KIND_LABEL = { image: 'صورة', pdf: 'PDF', word: 'Word', slides: 'عرض تقديمي', file: 'ملف' }
+export const KIND_LABEL = { image: 'صورة', pdf: 'PDF', word: 'Word', slides: 'عرض تقديمي', file: 'ملف', link: 'رابط' }
 export const fmtSize = (b) => (!b ? '' : b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} ك.ب` : `${(b / 1024 / 1024).toFixed(1)} م.ب`)
