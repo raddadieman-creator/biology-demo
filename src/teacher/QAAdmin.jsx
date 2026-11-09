@@ -48,7 +48,7 @@ function Reply({ store, data, q, reload }) {
       <div className="spread" style={{ alignItems: 'flex-start' }}>
         <p style={{ fontWeight: 700, lineHeight: 1.7, flex: '1 1 220px' }}>{q.text}</p>
         <div className="row" style={{ gap: 6 }}>
-          <span className="chip">{q.source === 'assistant' ? 'عبر دعسوقة' : 'صفحة الأسئلة'}</span>
+          <span className="chip">{q.source === 'assistant' ? 'عبر بيو' : 'صفحة الأسئلة'}</span>
           {editing && <span className={`chip ${q.is_public ? 'good' : ''}`}>{q.is_public ? 'منشورة للجميع' : 'لها فقط'}</span>}
         </div>
       </div>
@@ -62,7 +62,7 @@ function Reply({ store, data, q, reload }) {
       <div className="ib-opts">
         <label className="toggle"><input type="checkbox" checked={pub} onChange={(e) => setPub(e.target.checked)} /> نشرها لكل الطالبات (بدون الاسم)</label>
         {!editing && <label className="toggle"><input type="checkbox" checked={toBank} onChange={(e) => setToBank(e.target.checked)} /> إضافتها إلى بنك المذاكرة</label>}
-        {!editing && <label className="toggle"><input type="checkbox" checked={toFaq} onChange={(e) => setToFaq(e.target.checked)} /> إضافتها لإجابات دعسوقة</label>}
+        {!editing && <label className="toggle"><input type="checkbox" checked={toFaq} onChange={(e) => setToFaq(e.target.checked)} /> إضافتها لإجابات بيو</label>}
       </div>
       {err && <div className="notice error" role="alert">{err}</div>}
       <div className="row">

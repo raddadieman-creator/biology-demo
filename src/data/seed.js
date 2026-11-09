@@ -409,7 +409,7 @@ export const QUESTIONS = [
     ['', 'العين المركبة لا ترى في الظلام التام.', 'العيون لا تسمع.', 'الشم بقرون الاستشعار والمستقبلات الكيميائية.']),
 ]
 
-// بنك إجابات «دعسوقة»: إجابة + سؤال يوجّه التفكير
+// بنك إجابات «بيو»: إجابة + سؤال يوجّه التفكير
 const f = (id, lesson_id, question, keywords, answer, followup) => ({ id, lesson_id, question, keywords, answer, followup })
 
 export const FAQ = [

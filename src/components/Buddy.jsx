@@ -1,4 +1,4 @@
-// «دعسوقة»: شخصية دعسوقة متحركة تتجول في الصفحة، تتابع المؤشر بعينيها، وتفرح أو تحزن مع إجابات الطالبة
+// «بيو»: شخصية على هيئة دعسوقة متحركة تتجول في الصفحة، تتابع المؤشر بعينيها، وتفرح أو تحزن مع إجابات الطالبة
 import { useEffect, useRef, useState } from 'react'
 
 export function cheer(mood, text) {
@@ -7,7 +7,7 @@ export function cheer(mood, text) {
 
 const HAPPY = ['أحسنتِ!', 'رائع!', 'إجابة ممتازة!', 'عالمة صغيرة!']
 const SAD = ['لا بأس، اقرئي التبرير', 'قريبة! حاولي فهم السبب', 'الخطأ طريق للتعلّم']
-const IDLE = ['عندك سؤال؟ اسأليني', 'أنا دعسوقة، مساعدتك', 'جرّبي النشاط التفاعلي!']
+const IDLE = ['عندك سؤال؟ اسأليني', 'أنا بيو، مساعدتك', 'جرّبي النشاط التفاعلي!']
 
 // الدعسوقة: جسم أحمر منقّط ورأس داكن بعينين تتبعان المؤشر وقرني استشعار يهتزان
 export function AtomFace({ size = 96, look = { x: 0, y: 0 }, mood = '' }) {
@@ -135,7 +135,7 @@ export default function Buddy({ onOpen, hidden }) {
       onClick={onOpen}
       onMouseEnter={() => !bubble && setBubble('اضغطي واسأليني!')}
       onMouseLeave={() => setBubble((b) => (b === 'اضغطي واسأليني!' ? '' : b))}
-      aria-label="افتحي المساعدة دعسوقة"
+      aria-label="افتحي المساعدة بيو"
     >
       <span className="buddy-body"><AtomFace look={look} mood={mood} /></span>
       <span className="buddy-shadow" />

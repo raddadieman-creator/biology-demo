@@ -133,7 +133,7 @@ export default function App() {
             <BrandMark size={38} />
             <span>
               <b>{SITE.name}</b>
-              <small>{isTeacher ? 'لوحة المعلمة' : 'أحياء 1 · أول ثانوي'}</small>
+              <small>{isTeacher ? 'لوحة المعلمة' : 'BioLab · أحياء 1'}</small>
             </span>
           </button>
           {!isTeacher && student && (
