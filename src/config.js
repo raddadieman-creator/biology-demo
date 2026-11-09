@@ -1,0 +1,20 @@
+// إعدادات عامة يمكن تعديلها بسهولة
+export const SITE = {
+  name: 'أحيائي',
+  tagline: 'أحياء 1 · السنة الأولى المشتركة · المفصليات',
+  assistantName: 'دعسوقة',
+  teacherName: 'معلمة الأحياء',
+  classes: ['1/1', '1/2', '1/3', '1/4', '1/5'],
+  // كلمة مرور لوحة المعلمة في النسخة التجريبية فقط (بدون قاعدة بيانات)
+  demoTeacherPassword: '1234',
+  liveSeconds: 20,
+  unitTitle: 'الفصل الثامن: المفصليات',
+  unitNote: 'أحياء 1 · السنة الأولى المشتركة · الفصل الدراسي الأول',
+}
+
+export const LEVELS = ['تذكّر', 'فهم', 'تطبيق', 'تحليل']
+
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || ''
+export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+export const AI_ENABLED = import.meta.env.VITE_AI_ENABLED === '1'
+export const USE_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)
