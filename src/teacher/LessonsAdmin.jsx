@@ -132,12 +132,21 @@ export default function LessonsAdmin({ store, data, reload }) {
                 <b>النموذج ثلاثي الأبعاد: {MODEL_PARTS[md.kind]?.title || md.kind}</b>
                 <span className="small muted">تظهر هذه المعلومات عند ضغط الطالبة على كل جزء من النموذج.</span>
                 {md.parts.map((pt, k) => (
-                  <label key={pt.key} className="field" htmlFor={`la-m-${md.kind}-${pt.key}`}>{pt.title}
-                    <textarea id={`la-m-${md.kind}-${pt.key}`} className="input" rows={3} value={pt.text} onChange={(e) => {
-                      const list = modelsOf(draft).map((m, j) => (j === mi ? { ...m, parts: m.parts.map((x, q) => (q === k ? { ...x, text: e.target.value } : x)) } : m))
-                      set('model', list)
-                    }} />
-                  </label>
+                  <div key={pt.key} className="stack" style={{ gap: 6 }}>
+                    <label className="field" htmlFor={`la-m-${md.kind}-${pt.key}`}>{pt.title}: التعريف
+                      <textarea id={`la-m-${md.kind}-${pt.key}`} className="input" rows={2} value={pt.text} onChange={(e) => {
+                        const list = modelsOf(draft).map((m, j) => (j === mi ? { ...m, parts: m.parts.map((x, q) => (q === k ? { ...x, text: e.target.value } : x)) } : m))
+                        set('model', list)
+                      }} />
+                    </label>
+                    <label className="field" htmlFor={`la-mp-${md.kind}-${pt.key}`}>{pt.title}: التفاصيل (كل سطر نقطة)
+                      <textarea id={`la-mp-${md.kind}-${pt.key}`} className="input" rows={3} value={(pt.points || []).join('\n')} onChange={(e) => {
+                        const pts = e.target.value.split('\n')
+                        const list = modelsOf(draft).map((m, j) => (j === mi ? { ...m, parts: m.parts.map((x, q) => (q === k ? { ...x, points: pts } : x)) } : m))
+                        set('model', list)
+                      }} />
+                    </label>
+                  </div>
                 ))}
               </div>
             ))}

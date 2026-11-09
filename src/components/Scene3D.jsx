@@ -1028,6 +1028,17 @@ export default function Scene3D({ model }) {
             <span className="eyebrow">{title}</span>
             <h3>{current.title}</h3>
             <p>{current.text}</p>
+            {current.points?.length > 0 && (
+              <ul className="m3-points">
+                {current.points.map((pt, i) => <li key={i} style={{ '--i': i }}>{pt}</li>)}
+              </ul>
+            )}
+            {current.ref && <span className="m3-ref"><Icon name="book" size={14} /> {current.ref}</span>}
+            <div className="m3-nav">
+              <button onClick={() => { const i = parts.findIndex((p) => p.key === sel); setSel(parts[(i - 1 + parts.length) % parts.length].key) }}>السابق</button>
+              <span className="num">{parts.findIndex((p) => p.key === sel) + 1} / {parts.length}</span>
+              <button onClick={() => { const i = parts.findIndex((p) => p.key === sel); setSel(parts[(i + 1) % parts.length].key) }}>التالي</button>
+            </div>
           </div>
         ) : (
           <div className="m3-card">

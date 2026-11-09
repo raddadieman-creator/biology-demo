@@ -1063,3 +1063,16 @@ tr.clickable { cursor: pointer; } tr.clickable:hover td { background: var(--prim
 .atom-face.fly .sp { transform-box: fill-box; transform-origin: center; animation: twinkle 2.4s ease-in-out infinite; }
 .atom-face.fly .s2 { animation-delay: 0.8s; } .atom-face.fly .s3 { animation-delay: 1.6s; }
 @keyframes twinkle { 0%, 100% { opacity: 0; transform: scale(0.4); } 50% { opacity: 1; transform: scale(1.2); } }
+
+/* تفاصيل جزء النموذج */
+.m3-info { max-height: 470px; overflow-y: auto; scrollbar-width: thin; }
+.m3-points { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.m3-points li { position: relative; padding: 8px 12px; padding-inline-start: 30px; border-radius: 12px; background: var(--surface-2); line-height: 1.8; font-size: 0.93rem; color: var(--ink); opacity: 0; animation: rise 0.35s ease forwards; animation-delay: calc(var(--i) * 0.08s); }
+.m3-points li::before { content: ''; position: absolute; inset-inline-start: 12px; top: 17px; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent); }
+.m3-ref { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; padding: 5px 12px; border-radius: 99px; background: var(--primary-soft); color: var(--primary); font-size: 0.8rem; font-weight: 600; }
+.m3-ref svg { width: 14px; height: 14px; }
+.m3-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 4px; }
+.m3-nav button { border: 1px solid var(--line); background: #fff; border-radius: 10px; padding: 6px 12px; cursor: pointer; font: inherit; font-size: 0.85rem; color: var(--ink-2); }
+.m3-nav button:hover { border-color: var(--primary); color: var(--primary); }
+.m3-nav .num { font-size: 0.8rem; color: var(--muted); }
+@media (max-width: 900px) { .m3-info { max-height: none; } }

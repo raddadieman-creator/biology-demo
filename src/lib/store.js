@@ -44,6 +44,8 @@ export function boardFrom(attempts) {
 // ---------------------------------------------------------------- محلي
 function createLocalStore() {
   const KEY = 'ahyaei:v3'
+  // عند تحديث المحتوى النموذجي (دروس، أسئلة، نماذج) يُحدَّث في المتصفح مع بقاء نتائج الطالبات وما رفعته المعلمة
+  const CONTENT_V = 5
   let mem = null
 
   const fresh = () => ({
@@ -60,6 +62,7 @@ function createLocalStore() {
     games: [],
     players: [],
     game_answers: [],
+    content_v: CONTENT_V,
   })
 
   const read = () => {
@@ -76,6 +79,15 @@ function createLocalStore() {
   }
   const tx = (fn) => { const db = read(); const out = fn(db); write(db); return out }
   if (!read().lessons) write(fresh())
+  try {
+    const db = read()
+    if (db.content_v !== CONTENT_V) {
+      const f = fresh()
+      for (const k of ['lessons', 'quizzes', 'questions', 'faq', 'study_bank']) db[k] = f[k]
+      db.content_v = CONTENT_V
+      write(db)
+    }
+  } catch {}
   try { if (!localStorage.getItem(KEY)) write(fresh()) } catch {}
 
   const upsert = (arr, item) => {
