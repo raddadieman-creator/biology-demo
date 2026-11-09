@@ -35,7 +35,7 @@ export default function Home({ data, student, go, openChat }) {
               </button>
             )}
             <button className="btn btn-lg" onClick={openChat}>
-              <Icon name="spark" /> اسألي رهف
+              <Icon name="spark" /> اسألي فراشة
             </button>
           </div>
         </div>

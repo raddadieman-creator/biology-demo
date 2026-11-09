@@ -1,4 +1,4 @@
-// «رهف»: فراشة رقيقة تطير من جهة إلى أخرى تتجول في الصفحة، تتابع المؤشر بعينيها، وتفرح أو تحزن مع إجابات الطالبة
+// «فراشة»: فراشة رقيقة تطير من جهة إلى أخرى تتجول في الصفحة، تتابع المؤشر بعينيها، وتفرح أو تحزن مع إجابات الطالبة
 import { useEffect, useRef, useState } from 'react'
 
 export function cheer(mood, text) {
@@ -7,9 +7,9 @@ export function cheer(mood, text) {
 
 const HAPPY = ['أحسنتِ!', 'رائع!', 'إجابة ممتازة!', 'عالمة صغيرة!']
 const SAD = ['لا بأس، اقرئي التبرير', 'قريبة! حاولي فهم السبب', 'الخطأ طريق للتعلّم']
-const IDLE = ['عندك سؤال؟ اسأليني', 'أنا رهف، مساعدتك', 'جرّبي النشاط التفاعلي!']
+const IDLE = ['عندك سؤال؟ اسأليني', 'أنا فراشة، مساعدتك', 'جرّبي النشاط التفاعلي!']
 
-// «رهف»: فراشة رقيقة حالمة، جناحاها يرفرفان بهدوء، وعيناها تتبعان المؤشر، وحولها بريق خفيف
+// «فراشة»: فراشة رقيقة حالمة، جناحاها يرفرفان بهدوء، وعيناها تتبعان المؤشر، وحولها بريق خفيف
 const Wing = ({ side }) => {
   const f = side === 'l' ? -1 : 1
   return (
@@ -168,7 +168,7 @@ export default function Buddy({ onOpen, hidden }) {
       onClick={onOpen}
       onMouseEnter={() => !bubble && setBubble('اضغطي واسأليني!')}
       onMouseLeave={() => setBubble((b) => (b === 'اضغطي واسأليني!' ? '' : b))}
-      aria-label="افتحي المساعدة رهف"
+      aria-label="افتحي المساعدة فراشة"
     >
       <span className="buddy-body" style={{ '--tilt': `${tilt}deg` }}><AtomFace look={look} mood={mood} /></span>
       <span className="buddy-shadow" />
