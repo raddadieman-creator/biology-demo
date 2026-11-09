@@ -977,3 +977,64 @@ tr.clickable { cursor: pointer; } tr.clickable:hover td { background: var(--prim
 .res-form h3 svg { width: 22px; height: 22px; color: var(--primary); }
 @media (max-width: 640px) { .res-stats { grid-template-columns: 1fr 1fr 1fr; gap: 8px; } .res-stats .kpi b { font-size: 1.3rem; } }
 .hero-models .chip:hover { background: color-mix(in srgb, var(--c) 10%, #fff); }
+
+/* الخلية: عضيات تدور، ونواة تنبض، وانضغاط عند الحركة */
+.atom-face.cell .organelles { transform-origin: 0 0; animation: cellSpin 16s linear infinite; }
+.atom-face.cell .nucleus { transform-origin: 0 -1px; animation: nucPulse 3.4s ease-in-out infinite; }
+@keyframes cellSpin { to { transform: rotate(360deg); } }
+@keyframes nucPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+.buddy.walk .atom-face.cell { animation: squish 0.55s ease-in-out infinite alternate; }
+@keyframes squish { from { transform: scale(1.08, 0.92); } to { transform: scale(0.94, 1.06); } }
+.buddy.happy .atom-face.cell .organelles { animation-duration: 3s; }
+.buddy-body:has(.cell) { filter: drop-shadow(0 8px 16px rgba(13, 148, 136, 0.35)); }
+
+/* ===================== خريطة المفاهيم المتحركة */
+.cmap { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0; padding: 26px 22px 24px; border-radius: 26px; background: radial-gradient(90% 80% at 50% 0%, color-mix(in srgb, var(--c) 10%, #fff), #fff 70%); border: 1px solid color-mix(in srgb, var(--c) 22%, var(--line)); overflow: hidden; }
+.cm-head { width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+.cm-head h2 { font-size: 1.25rem; }
+.cm-root { opacity: 0; transform: scale(0.6); }
+.cm-root span { display: inline-block; padding: 12px 26px; border-radius: 99px; background: var(--c); color: #fff; font-family: var(--f-display); font-weight: 700; font-size: 1.15rem; box-shadow: 0 12px 26px -12px var(--c); }
+.cmap.in .cm-root { animation: cmPop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.3) forwards, cmGlow 3s ease-in-out 1s infinite; }
+.cm-rail { width: 2px; height: 22px; background: var(--c); transform: scaleY(0); transform-origin: top; }
+.cmap.in .cm-rail { animation: cmGrowY 0.35s ease 0.45s forwards; }
+.cm-branches { position: relative; width: 100%; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 12px; padding-top: 22px; }
+.cm-branches::before { content: ''; position: absolute; top: 0; inset-inline: calc(100% / var(--n) / 2); height: 2px; background: var(--c); transform: scaleX(0); }
+.cmap.in .cm-branches::before { animation: cmGrowX 0.5s ease 0.75s forwards; }
+.cm-branch { position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 8px; opacity: 0; transform: translateY(14px); transition: opacity 0.3s, filter 0.3s; }
+.cm-branch::before { content: ''; position: absolute; top: -22px; inset-inline-start: 50%; width: 2px; height: 22px; background: var(--c); }
+.cmap.in .cm-branch { animation: cmDrop 0.5s cubic-bezier(0.2, 0.8, 0.3, 1.2) forwards; animation-delay: calc(1s + var(--i) * 0.12s); }
+.cm-node { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border-radius: 16px; border: 1.5px solid color-mix(in srgb, var(--c) 35%, var(--line)); background: #fff; cursor: pointer; font: inherit; text-align: start; box-shadow: 0 10px 22px -18px rgba(15, 42, 51, 0.6); transition: transform 0.2s, box-shadow 0.2s, background 0.2s; }
+.cm-node b { font-family: var(--f-display); font-weight: 700; font-size: 0.95rem; color: var(--ink); }
+.cm-node .num { display: inline-grid; place-items: center; min-width: 24px; height: 24px; border-radius: 8px; background: color-mix(in srgb, var(--c) 14%, #fff); color: color-mix(in srgb, var(--c) 80%, #000); font-size: 0.78rem; font-weight: 700; }
+.cm-node:hover { transform: translateY(-3px); box-shadow: 0 16px 26px -16px var(--c); }
+.cmap.in .cm-node { animation: cmFloat 4s ease-in-out infinite; animation-delay: calc(2s + var(--i) * 0.4s); }
+.cm-branch.on .cm-node { background: var(--c); border-color: var(--c); animation: none; }
+.cm-branch.on .cm-node b { color: #fff; }
+.cm-branch.on .cm-node .num { background: rgba(255, 255, 255, 0.25); color: #fff; }
+.cmap.has-open .cm-branch:not(.on) { filter: saturate(0.4); opacity: 0.55 !important; }
+.cm-leaves { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.cm-leaves li { position: relative; padding: 7px 12px; border-radius: 12px; background: color-mix(in srgb, var(--c) 6%, #fff); border: 1px dashed color-mix(in srgb, var(--c) 30%, transparent); font-size: 0.86rem; line-height: 1.6; opacity: 0; transform: translateX(-8px); }
+.cmap.in .cm-leaves li { animation: cmLeaf 0.4s ease forwards; animation-delay: calc(1.4s + var(--i) * 0.12s + var(--k) * 0.08s); }
+.cm-branch.on .cm-leaves li { background: color-mix(in srgb, var(--c) 12%, #fff); border-style: solid; }
+.cm-note { width: 100%; margin-top: 16px; padding: 14px 18px; border-radius: 16px; background: #fff; border-inline-start: 5px solid var(--c); box-shadow: 0 12px 26px -20px rgba(15, 42, 51, 0.6); animation: rise 0.3s ease; }
+.cm-note b { font-family: var(--f-display); color: color-mix(in srgb, var(--c) 80%, #000); }
+.cm-note p { margin-top: 4px; line-height: 1.9; }
+@keyframes cmPop { to { opacity: 1; transform: scale(1); } }
+@keyframes cmGlow { 0%, 100% { filter: drop-shadow(0 0 0 transparent); } 50% { filter: drop-shadow(0 0 12px color-mix(in srgb, var(--c) 60%, transparent)); } }
+@keyframes cmGrowY { to { transform: scaleY(1); } }
+@keyframes cmGrowX { to { transform: scaleX(1); } }
+@keyframes cmDrop { to { opacity: 1; transform: translateY(0); } }
+@keyframes cmLeaf { to { opacity: 1; transform: translateX(0); } }
+@keyframes cmFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@media (max-width: 900px) {
+  .cm-branches { grid-template-columns: 1fr 1fr; }
+  .cm-branches::before, .cm-branch::before { display: none; }
+}
+@media (max-width: 560px) {
+  .cmap { align-items: stretch; padding: 22px 16px; }
+  .cm-root { align-self: center; }
+  .cm-rail { align-self: center; }
+  .cm-branches { grid-template-columns: 1fr; padding-top: 6px; padding-inline-start: 16px; border-inline-start: 2px solid var(--c); }
+  .cm-branch::before { display: block; top: 22px; inset-inline-start: -16px; width: 16px; height: 2px; }
+}
+@media (prefers-reduced-motion: reduce) { .cmap * { animation: none !important; opacity: 1 !important; transform: none !important; } }

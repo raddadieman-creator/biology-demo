@@ -49,7 +49,7 @@ const TABS = [
   ['challenges', 'التحديات'],
   ['questions', 'الأسئلة'],
   ['lessons', 'الدروس والإثراءات'],
-  ['assistant', 'إجابات بيو'],
+  ['assistant', 'إجابات خليّة'],
 ]
 
 export default function TeacherApp({ store, data, reload }) {

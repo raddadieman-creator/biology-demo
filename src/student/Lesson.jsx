@@ -5,6 +5,7 @@ import { track } from '../lib/track.js'
 import { cheer } from '../components/Buddy.jsx'
 import { modelsOf, ORD, themeFor, ytThumb } from '../lib/theme.js'
 import { MODEL_PARTS } from '../data/models.js'
+import ConceptMap from '../components/ConceptMap.jsx'
 import { FileCard } from './QA.jsx'
 
 const Scene3D = lazy(() => import('../components/Scene3D.jsx'))
@@ -155,6 +156,8 @@ export default function Lesson({ data, id, go, store, student }) {
       </section>
 
       <Models key={lesson.id} models={modelsOf(lesson)} color={t.c} i={mi} setI={setMi} />
+
+      <ConceptMap key={'map-' + lesson.id} map={lesson.map} color={t.c} />
 
       <div className="lesson-layout">
         <nav className="toc" aria-label="محتويات الدرس">

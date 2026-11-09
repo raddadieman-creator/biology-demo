@@ -1,4 +1,4 @@
-// «بيو»: شخصية على هيئة دعسوقة متحركة تتجول في الصفحة، تتابع المؤشر بعينيها، وتفرح أو تحزن مع إجابات الطالبة
+// «خليّة»: شخصية على هيئة خلية حية متحركة تتجول في الصفحة، تتابع المؤشر بعينيها، وتفرح أو تحزن مع إجابات الطالبة
 import { useEffect, useRef, useState } from 'react'
 
 export function cheer(mood, text) {
@@ -7,52 +7,81 @@ export function cheer(mood, text) {
 
 const HAPPY = ['أحسنتِ!', 'رائع!', 'إجابة ممتازة!', 'عالمة صغيرة!']
 const SAD = ['لا بأس، اقرئي التبرير', 'قريبة! حاولي فهم السبب', 'الخطأ طريق للتعلّم']
-const IDLE = ['عندك سؤال؟ اسأليني', 'أنا بيو، مساعدتك', 'جرّبي النشاط التفاعلي!']
+const IDLE = ['عندك سؤال؟ اسأليني', 'أنا خليّة، مساعدتك', 'جرّبي النشاط التفاعلي!']
 
-// الدعسوقة: جسم أحمر منقّط ورأس داكن بعينين تتبعان المؤشر وقرني استشعار يهتزان
+// «خليّة»: خلية حيّة غشاؤها يتموّج، وعضيّاتها تدور، ونواتها وجهٌ يتابع المؤشر
+const blob = (k) => {
+  const n = 10, pts = []
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2
+    const r = 40 + Math.sin(i * 2.3 + k * 1.7) * 3.2 + Math.cos(i * 1.3 + k * 2.9) * 2.2
+    pts.push([Math.cos(a) * r, Math.sin(a) * r * 0.94 + 2])
+  }
+  const mid = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2]
+  let d = `M${mid(pts[n - 1], pts[0]).map((v) => v.toFixed(1)).join(' ')}`
+  for (let i = 0; i < n; i++) {
+    const m = mid(pts[i], pts[(i + 1) % n])
+    d += ` Q${pts[i][0].toFixed(1)} ${pts[i][1].toFixed(1)} ${m[0].toFixed(1)} ${m[1].toFixed(1)}`
+  }
+  return d + ' Z'
+}
+const SHAPES = [blob(0), blob(1), blob(2), blob(3)]
+const MORPH = [...SHAPES, SHAPES[0]].join(';')
+
 export function AtomFace({ size = 96, look = { x: 0, y: 0 }, mood = '' }) {
-  const lx = look.x * 2.2, ly = look.y * 2
+  const lx = look.x * 2.4, ly = look.y * 2.2
   return (
-    <svg className={`atom-face lady ${mood}`} width={size} height={size} viewBox="-50 -50 100 100" aria-hidden="true">
+    <svg className={`atom-face cell ${mood}`} width={size} height={size} viewBox="-50 -50 100 100" aria-hidden="true">
       <defs>
-        <radialGradient id="shell" cx="0.35" cy="0.3" r="0.8">
-          <stop offset="0" stopColor="#ff8a7a" />
-          <stop offset="0.5" stopColor="#ef3b2c" />
-          <stop offset="1" stopColor="#b91c1c" />
+        <radialGradient id="cyto" cx="0.4" cy="0.35" r="0.75">
+          <stop offset="0" stopColor="#ecfeff" />
+          <stop offset="0.6" stopColor="#a7f3d0" />
+          <stop offset="1" stopColor="#5eead4" />
+        </radialGradient>
+        <radialGradient id="nuc2" cx="0.38" cy="0.32" r="0.8">
+          <stop offset="0" stopColor="#e9d5ff" />
+          <stop offset="0.55" stopColor="#a78bfa" />
+          <stop offset="1" stopColor="#7c3aed" />
         </radialGradient>
       </defs>
-      <g className="legs" stroke="#1f2937" strokeWidth="3.2" strokeLinecap="round" fill="none">
-        <path className="lg l1" d="M-28 4 L-42 -2" /><path className="lg l2" d="M-30 16 L-45 18" /><path className="lg l3" d="M-26 27 L-38 38" />
-        <path className="lg r1" d="M28 4 L42 -2" /><path className="lg r2" d="M30 16 L45 18" /><path className="lg r3" d="M26 27 L38 38" />
+      {/* الغشاء الخلوي يتموّج */}
+      <path d={SHAPES[0]} fill="url(#cyto)" stroke="#0f766e" strokeWidth="2.6" opacity="0.97">
+        <animate attributeName="d" dur="5s" repeatCount="indefinite" values={MORPH} />
+      </path>
+      <path d={SHAPES[2]} fill="none" stroke="#14b8a6" strokeWidth="1" strokeDasharray="2 3" transform="scale(0.9)" opacity="0.7">
+        <animate attributeName="d" dur="5s" repeatCount="indefinite" values={[SHAPES[2], SHAPES[3], SHAPES[0], SHAPES[1], SHAPES[2]].join(';')} />
+      </path>
+      {/* العضيات تدور حول النواة */}
+      <g className="organelles">
+        <g transform="translate(-24 14) rotate(-30)"><ellipse rx="8" ry="4.2" fill="#fb923c" stroke="#c2410c" strokeWidth="1" /><path d="M-6 0 q1.5 -3 3 0 t3 0 t3 0 t3 0" stroke="#c2410c" strokeWidth="0.8" fill="none" /></g>
+        <g transform="translate(25 -18) rotate(40)"><ellipse rx="7" ry="3.8" fill="#fb923c" stroke="#c2410c" strokeWidth="1" /><path d="M-5 0 q1.25 -2.6 2.5 0 t2.5 0 t2.5 0 t2.5 0" stroke="#c2410c" strokeWidth="0.8" fill="none" /></g>
+        <path d="M18 22 q6 -4 10 2 q-6 2 -10 -2 M16 27 q7 -3 12 3" stroke="#0e7490" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+        <path d="M-30 -10 q4 -6 9 -3 M-31 -4 q5 -5 10 -2" stroke="#db2777" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+        <circle cx="-14" cy="-28" r="3.4" fill="#fde68a" stroke="#ca8a04" strokeWidth="0.8" />
+        <circle cx="30" cy="6" r="2.6" fill="#bae6fd" stroke="#0284c7" strokeWidth="0.8" />
+        {[[-6, 30], [8, 31], [-20, 26], [22, -30], [-28, 4], [33, -6], [0, -33], [12, -31]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="1.2" fill="#0f766e" />)}
       </g>
-      <g className="antennae" stroke="#1f2937" strokeWidth="2.6" strokeLinecap="round" fill="none">
-        <path className="ant a1" d="M-7 -34 Q-12 -46 -20 -46" />
-        <path className="ant a2" d="M7 -34 Q12 -46 20 -46" />
-        <circle cx="-20" cy="-46" r="3.4" fill="#1f2937" /><circle cx="20" cy="-46" r="3.4" fill="#1f2937" />
+      {/* النواة: وجه الخلية */}
+      <g className="nucleus">
+        <circle r="19" cy="-1" fill="url(#nuc2)" stroke="#6d28d9" strokeWidth="1.4" />
+        <circle cx="9" cy="-12" r="3" fill="#c4b5fd" opacity="0.8" />
+        <ellipse cx="-8" cy="-10" rx="4" ry="2.2" fill="#fff" opacity="0.4" />
+        <g className="eyes">
+          <ellipse cx="-6.5" cy="-2" rx="4.6" ry="5.4" fill="#fff" />
+          <ellipse cx="6.5" cy="-2" rx="4.6" ry="5.4" fill="#fff" />
+          <circle cx={-6.5 + lx} cy={-1.6 + ly} r="2.5" fill="#1e1b4b" />
+          <circle cx={6.5 + lx} cy={-1.6 + ly} r="2.5" fill="#1e1b4b" />
+          <circle cx={-5.6 + lx} cy={-2.6 + ly} r="0.8" fill="#fff" />
+          <circle cx={7.4 + lx} cy={-2.6 + ly} r="0.8" fill="#fff" />
+          <rect className="lid" x="-11.6" y="-8" width="10.2" height="12" rx="5" fill="#a78bfa" />
+          <rect className="lid" x="1.4" y="-8" width="10.2" height="12" rx="5" fill="#a78bfa" />
+        </g>
+        <circle cx="-12" cy="6" r="2.4" fill="#f472b6" opacity="0.6" />
+        <circle cx="12" cy="6" r="2.4" fill="#f472b6" opacity="0.6" />
+        {mood === 'sad'
+          ? <path d="M-4.5 10 Q0 6 4.5 10" stroke="#1e1b4b" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+          : <path d={mood === 'happy' ? 'M-6 6 Q0 14 6 6 Z' : 'M-4.5 7 Q0 11 4.5 7'} stroke="#1e1b4b" strokeWidth="1.8" fill={mood === 'happy' ? '#1e1b4b' : 'none'} strokeLinecap="round" />}
       </g>
-      <ellipse cx="0" cy="12" rx="33" ry="31" fill="url(#shell)" stroke="#7f1d1d" strokeWidth="1.5" />
-      <path d="M0 -6 L0 42" stroke="#1f2937" strokeWidth="2.4" />
-      <g fill="#1f2937">
-        <circle cx="-16" cy="8" r="5.5" /><circle cx="15" cy="10" r="5" /><circle cx="-20" cy="26" r="4.6" />
-        <circle cx="19" cy="27" r="5" /><circle cx="-7" cy="36" r="3.6" /><circle cx="8" cy="37" r="3.4" />
-      </g>
-      <ellipse cx="-17" cy="-2" rx="7" ry="4" fill="#fff" opacity="0.35" transform="rotate(-25 -17 -2)" />
-      <ellipse cx="0" cy="-18" rx="21" ry="17" fill="#1f2937" />
-      <g className="eyes">
-        <ellipse cx="-8" cy="-21" rx="6" ry="7" fill="#fff" />
-        <ellipse cx="8" cy="-21" rx="6" ry="7" fill="#fff" />
-        <circle cx={-8 + lx} cy={-20.5 + ly} r="3.2" fill="#0f172a" />
-        <circle cx={8 + lx} cy={-20.5 + ly} r="3.2" fill="#0f172a" />
-        <circle cx={-6.8 + lx} cy={-21.8 + ly} r="1" fill="#fff" />
-        <circle cx={9.2 + lx} cy={-21.8 + ly} r="1" fill="#fff" />
-        <rect className="lid" x="-14.5" y="-28.5" width="13" height="15" rx="6" fill="#1f2937" />
-        <rect className="lid" x="1.5" y="-28.5" width="13" height="15" rx="6" fill="#1f2937" />
-      </g>
-      <circle cx="-15" cy="-11" r="2.8" fill="#fb7185" opacity="0.8" />
-      <circle cx="15" cy="-11" r="2.8" fill="#fb7185" opacity="0.8" />
-      {mood === 'sad'
-        ? <path d="M-5 -6 Q0 -10 5 -6" stroke="#fff" strokeWidth="2" fill="none" strokeLinecap="round" />
-        : <path d={mood === 'happy' ? 'M-7 -10 Q0 -1 7 -10 Z' : 'M-5 -9 Q0 -5 5 -9'} stroke="#fff" strokeWidth="2" fill={mood === 'happy' ? '#fff' : 'none'} strokeLinecap="round" />}
     </svg>
   )
 }
@@ -135,7 +164,7 @@ export default function Buddy({ onOpen, hidden }) {
       onClick={onOpen}
       onMouseEnter={() => !bubble && setBubble('اضغطي واسأليني!')}
       onMouseLeave={() => setBubble((b) => (b === 'اضغطي واسأليني!' ? '' : b))}
-      aria-label="افتحي المساعدة بيو"
+      aria-label="افتحي المساعدة خليّة"
     >
       <span className="buddy-body"><AtomFace look={look} mood={mood} /></span>
       <span className="buddy-shadow" />

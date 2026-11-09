@@ -16,6 +16,7 @@ create table if not exists lessons (
   created_at timestamptz default now()
 );
 alter table lessons add column if not exists model jsonb;
+alter table lessons add column if not exists map jsonb;
 
 create table if not exists quizzes (
   id text primary key,

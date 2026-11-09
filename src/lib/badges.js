@@ -20,7 +20,7 @@ export const BADGES = [
   { id: 'champ', title: 'نخبة التحدي', how: '90% فأكثر في «تحدّي المفصليات»', icon: 'trophy', color: '#eab308', quiz: 'q4', min: 90 },
   { id: 'lab', title: 'باحثة تجريبية', how: 'تنفيذ ثلاث تجارب من «جرّبي بنفسك»', icon: 'flask', color: '#14b8a6', local: () => extrasCount('exp-') >= 3 },
   { id: 'observer', title: 'باحثة ميدانية', how: 'إنجاز مهمتي رصد', icon: 'eye', color: '#22c55e', local: () => extrasCount('obs-') >= 2 },
-  { id: 'curious', title: 'عقل باحث', how: 'طرح خمسة أسئلة على «بيو»', icon: 'spark', color: '#6366f1', local: () => asked() >= 5 },
+  { id: 'curious', title: 'عقل باحث', how: 'طرح خمسة أسئلة على «خليّة»', icon: 'spark', color: '#6366f1', local: () => asked() >= 5 },
 ]
 export const MASTER = { id: 'master', title: 'مرتبة الشرف', how: '85% فأكثر في كل اختبار من اختبارات الدروس الثلاثة', quizzes: ['q1', 'q2', 'q3'], min: 85 }
 

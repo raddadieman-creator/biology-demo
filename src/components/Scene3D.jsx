@@ -92,20 +92,59 @@ function lights(scene) {
 // مواد منفصلة لكل جزء حتى يُضاء الجزء المختار وحده
 function partMats() {
   const store = {}
+  let sel = null, hov = null
   const mat = (key, color, extra = {}) => {
     const m = new THREE.MeshStandardMaterial({ color, roughness: 0.45, metalness: 0.05, ...extra })
     ;(store[key] = store[key] || []).push(m)
     return m
   }
-  const highlight = (key) => {
+  const paint = (t = 0) => {
     for (const [k, list] of Object.entries(store)) {
+      const on = k === sel || (sel === 'exo' && k !== 'wings' && k !== 'web')
+      const hover = k === hov && !on
       for (const m of list) {
-        m.emissive.set(k === key || (key === 'exo' && k !== 'wings' && k !== 'web') ? '#f59e0b' : '#000000')
-        m.emissiveIntensity = k === key ? 0.55 : 0.28
+        m.emissive.set(on ? '#f59e0b' : hover ? '#2dd4bf' : '#000000')
+        m.emissiveIntensity = on ? (k === sel ? 0.42 + Math.sin(t * 5) * 0.2 : 0.25) : hover ? 0.35 : 0
       }
     }
   }
-  return { mat, highlight }
+  return {
+    mat,
+    highlight: (key) => { sel = key; paint() },
+    hover: (key) => { if (key !== hov) { hov = key; paint() } },
+    pulse: (t) => { if (sel) paint(t) },
+  }
+}
+// مجموعة رجل تدور حول قاعدتها، لتحريك الأرجل في خطوات متتابعة
+function legAt(parent, points, r, material, key, pick) {
+  const g = new THREE.Group()
+  g.position.copy(points[0])
+  parent.add(g)
+  limb(points.map((p) => p.clone().sub(points[0])), r, material, g, key, pick)
+  return g
+}
+// ذرات صغيرة تطفو في المشهد فتمنحه حيوية
+function motes(scene, color = '#5eead4', n = 90, spread = 7) {
+  const c = document.createElement('canvas'); c.width = c.height = 32
+  const g = c.getContext('2d'); const gr = g.createRadialGradient(16, 16, 0, 16, 16, 16)
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)')
+  g.fillStyle = gr; g.fillRect(0, 0, 32, 32)
+  const pos = new Float32Array(n * 3), seed = []
+  for (let i = 0; i < n; i++) {
+    pos[i * 3] = (Math.random() - 0.5) * spread; pos[i * 3 + 1] = Math.random() * 3.2 - 0.8; pos[i * 3 + 2] = (Math.random() - 0.5) * spread * 0.6
+    seed.push(Math.random() * 10)
+  }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.09, map: new THREE.CanvasTexture(c), color, transparent: true, opacity: 0.75, depthWrite: false }))
+  scene.add(pts)
+  return (t, dt) => {
+    for (let i = 0; i < n; i++) {
+      pos[i * 3 + 1] += dt * (0.08 + (seed[i] % 1) * 0.12)
+      pos[i * 3] += Math.sin(t * 0.6 + seed[i]) * dt * 0.08
+      if (pos[i * 3 + 1] > 2.6) pos[i * 3 + 1] = -0.8
+    }
+    geo.attributes.position.needsUpdate = true
+  }
 }
 function tag(mesh, key, pick) { mesh.userData.key = key; pick.push(mesh); return mesh }
 function ellipsoid(rx, ry, rz, material) {
@@ -152,7 +191,7 @@ function leaf(len, wid, color = '#4ade80') {
 /* ---------------- الجرادة */
 function buildInsect(scene) {
   lights(scene)
-  const { mat, highlight } = partMats()
+  const pm = partMats(), { mat, highlight } = pm
   const pick = [], anchors = {}
   const bug = new THREE.Group()
   scene.add(bug)
@@ -189,12 +228,13 @@ function buildInsect(scene) {
   bug.add(thorax)
   // البطن من قطع متتالية
   const abdMat = mat('abdomen', '#86efac')
+  const abdSegs = []
   const segs = 8
   for (let i = 0; i < segs; i++) {
     const r = 0.46 - i * 0.03
     const s = tag(ellipsoid(0.24, r, r * 0.92, abdMat), 'abdomen', pick)
     s.position.set(0.28 - i * 0.36, 0.3 + i * 0.01, 0)
-    bug.add(s)
+    bug.add(s); abdSegs.push([s, r])
     if (i < segs - 1) for (const z of [-1, 1]) {
       const sp = tag(new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), mat('spiracles', '#14532d')), 'spiracles', pick)
       sp.position.set(s.position.x, s.position.y - 0.05, z * r * 0.9)
@@ -217,10 +257,11 @@ function buildInsect(scene) {
   const legMat = mat('legs', dark)
   const legs = new THREE.Group()
   bug.add(legs)
+  const steps = []
   for (const z of [-1, 1]) {
-    limb([V(1.4, 0.05, z * 0.3), V(1.6, -0.35, z * 0.65), V(1.85, -0.9, z * 0.8), V(2.05, -0.92, z * 0.95)], 0.055, legMat, legs, 'legs', pick)
-    limb([V(0.9, 0.0, z * 0.32), V(0.85, -0.4, z * 0.75), V(0.6, -0.9, z * 0.9), V(0.4, -0.92, z * 1.05)], 0.055, legMat, legs, 'legs', pick)
-    limb([V(0.55, 0.1, z * 0.35), V(-0.6, 1.0, z * 0.6), V(-1.05, -0.9, z * 0.62), V(-1.45, -0.93, z * 0.66)], 0.075, legMat, legs, 'legs', pick)
+    steps.push([legAt(legs, [V(1.4, 0.05, z * 0.3), V(1.6, -0.35, z * 0.65), V(1.85, -0.9, z * 0.8), V(2.05, -0.92, z * 0.95)], 0.055, legMat, 'legs', pick), z > 0 ? 0 : Math.PI, 0.16])
+    steps.push([legAt(legs, [V(0.9, 0.0, z * 0.32), V(0.85, -0.4, z * 0.75), V(0.6, -0.9, z * 0.9), V(0.4, -0.92, z * 1.05)], 0.055, legMat, 'legs', pick), z > 0 ? Math.PI : 0, 0.16])
+    steps.push([legAt(legs, [V(0.55, 0.1, z * 0.35), V(-0.6, 1.0, z * 0.6), V(-1.05, -0.9, z * 0.62), V(-1.45, -0.93, z * 0.66)], 0.075, legMat, 'legs', pick), z > 0 ? 0 : Math.PI, 0.05])
   }
   anchors.head = { obj: bug, at: V(2.0, 1.05, 0) }
   anchors.eye = { obj: bug, at: V(2.2, 0.62, 0.42) }
@@ -235,11 +276,14 @@ function buildInsect(scene) {
   return {
     camera: [1.2, 2.4, 6.6],
     target: [0.3, 0.2, 0],
-    pick, anchors, highlight,
+    pick, anchors, highlight, pm,
     update(t, dt, play) {
       if (!play) return
       bug.rotation.y = Math.sin(t * 0.3) * 0.35
       bug.position.y = Math.sin(t * 1.6) * 0.03
+      // خطوات ثلاثية متبادلة، وبطن ينقبض وينبسط كما تتنفس الجرادة
+      for (const [g, ph, amp] of steps) { g.rotation.y = Math.sin(t * 3.2 + ph) * amp; g.rotation.z = Math.max(0, Math.sin(t * 3.2 + ph)) * amp * 0.5 }
+      abdSegs.forEach(([m, r], i) => { const k = 1 + Math.sin(t * 2.4 - i * 0.5) * 0.06; m.scale.set(0.24, r * k, r * 0.92 * k) })
       for (const [p, z] of wings) p.rotation.x = -z * Math.max(0, Math.sin(t * 2.2)) * 0.25
       ants.forEach((g, i) => { g.rotation.z = Math.sin(t * 2 + i) * 0.12; g.rotation.y = Math.sin(t * 1.4 + i) * 0.1 })
     },
@@ -249,7 +293,7 @@ function buildInsect(scene) {
 /* ---------------- العنكبوت */
 function buildSpider(scene) {
   lights(scene)
-  const { mat, highlight } = partMats()
+  const pm = partMats(), { mat, highlight } = pm
   const pick = [], anchors = {}
   const sp = new THREE.Group()
   sp.rotation.y = -0.75
@@ -311,6 +355,7 @@ function buildSpider(scene) {
   const legs = new THREE.Group(), pedi = new THREE.Group()
   sp.add(legs, pedi)
   const legMat = mat('legs', '#4c1d95'), pedMat = mat('pedi', '#a855f7')
+  const spSteps = []
   for (const z of [-1, 1]) {
     limb([V(1.15, 0.15, z * 0.2), V(1.55, 0.35, z * 0.35), V(1.75, -0.1, z * 0.45)], 0.05, pedMat, pedi, 'pedi', pick)
     ;[[0.45, 1.1], [0.15, 0.4], [-0.15, -0.35], [-0.4, -1.0]].forEach(([dx, spread], i) => {
@@ -318,7 +363,7 @@ function buildSpider(scene) {
       const knee = V(0.75 + dx * 1.4 + spread * 0.45, 0.85 - i * 0.04, z * (1.0 + i * 0.04))
       const foot = V(0.75 + dx * 1.8 + spread * 0.95, -0.55, z * (1.55 + Math.abs(spread) * 0.12))
       const tip = foot.clone().add(V(spread * 0.15, -0.02, z * 0.15))
-      limb([base, knee, foot, tip], 0.06, legMat, legs, 'legs', pick)
+      spSteps.push([legAt(legs, [base, knee, foot, tip], 0.06, legMat, 'legs', pick), (i % 2 ? Math.PI : 0) + (z > 0 ? 0 : Math.PI)])
     })
   }
   anchors.ceph = { obj: sp, at: V(0.45, 0.05, -0.75) }
@@ -333,12 +378,14 @@ function buildSpider(scene) {
   return {
     camera: [2.2, 3.4, 6.8],
     target: [0, 0.2, 0],
-    pick, anchors, highlight,
+    pick, anchors, highlight, pm,
     update(t, dt, play) {
       if (!play) return
       sp.rotation.y = -0.75 + Math.sin(t * 0.25) * 0.3
       sp.position.y = Math.sin(t * 1.3) * 0.04
-      legs.children.forEach((m, i) => { m.position.y += Math.sin(t * 3 + i) * 0.0006 })
+      for (const [g, ph] of spSteps) { g.rotation.y = Math.sin(t * 2.6 + ph) * 0.1; g.rotation.x = Math.max(0, Math.sin(t * 2.6 + ph)) * 0.06 }
+      abd.scale.set(0.82 * (1 + Math.sin(t * 2) * 0.025), 0.62 * (1 + Math.sin(t * 2) * 0.04), 0.68)
+      thread.material.opacity = 0.6 + Math.sin(t * 3) * 0.25
       pedi.rotation.z = Math.sin(t * 2.4) * 0.05
       web.rotation.z = Math.sin(t * 0.4) * 0.03
     },
@@ -348,7 +395,7 @@ function buildSpider(scene) {
 /* ---------------- التحول الكامل */
 function buildMeta(scene) {
   lights(scene)
-  const { mat, highlight } = partMats()
+  const pm = partMats(), { mat, highlight } = pm
   const pick = [], anchors = {}
   const ring = new THREE.Group()
   scene.add(ring)
@@ -429,14 +476,16 @@ function buildMeta(scene) {
   return {
     camera: [0, 3.6, 7.2],
     target: [0, 0.2, 0],
-    pick, anchors, highlight,
+    pick, anchors, highlight, pm,
     update(t, dt, play) {
       if (!play) return
       ring.rotation.y += dt * 0.18
       larSegs.forEach((s, i) => { s.position.y = -0.25 + Math.max(0, Math.sin(t * 3 - i * 0.6)) * 0.08 })
       hang.rotation.z = Math.sin(t * 1.1) * 0.08
-      for (const [p, sd] of flaps) p.rotation.z = sd * Math.sin(t * 6) * 0.55
-      flyG.position.y = 0.55 + Math.sin(t * 2) * 0.08
+      for (const [p, sd] of flaps) p.rotation.z = sd * Math.sin(t * 7) * 0.65
+      const fa = t * 0.6
+      flyG.position.set(at(3).x + Math.cos(fa) * 0.45, 0.6 + Math.sin(t * 2) * 0.14, at(3).z + Math.sin(fa) * 0.45)
+      eggG.children.forEach((e, i) => { if (i > 0) e.rotation.z = Math.sin(t * 6 + i) * 0.12 })
     },
   }
 }
@@ -444,7 +493,7 @@ function buildMeta(scene) {
 /* ---------------- الأجهزة الداخلية للحشرة */
 function buildInside(scene) {
   lights(scene)
-  const { mat, highlight } = partMats()
+  const pm = partMats(), { mat, highlight } = pm
   const pick = [], anchors = {}
   const g = new THREE.Group()
   scene.add(g)
@@ -503,6 +552,12 @@ function buildInside(scene) {
   // خط طولي يصل القصبات
   for (const z of [-1, 1]) g.add(tag(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([V(1.0, 0.15, z * 0.3), V(-0.3, 0.15, z * 0.28), V(-2.25, 0.15, z * 0.24)]), 30, 0.02, 5), trMat), 'trach', pick))
 
+  // دم يسري في القلب نحو الرأس، وهواء يدخل من الثغور في القصبات
+  const heartCurve = new THREE.CatmullRomCurve3(heartPts)
+  const blood = Array.from({ length: 14 }, (_, i) => { const d = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 6), new THREE.MeshBasicMaterial({ color: '#fecaca' })); g.add(d); return [d, i / 14] })
+  const airMat = new THREE.MeshBasicMaterial({ color: '#dbeafe' })
+  const air = []
+  ;[1.0, 0.35, -0.3, -0.95, -1.6, -2.25].forEach((x, i) => { for (const z of [-1, 1]) { const rz = i === 0 ? 0.55 : 0.48 - Math.max(0, i - 2) * 0.03; const c = new THREE.CatmullRomCurve3([V(x, 0.12, z * rz), V(x, 0.15, z * rz * 0.55), V(x + 0.1, 0.35, z * 0.12)]); const d = new THREE.Mesh(new THREE.SphereGeometry(0.028, 6, 5), airMat); g.add(d); air.push([d, c, Math.random()]) } })
   anchors.body = { obj: g, at: V(-2.0, 0.85, 0) }
   anchors.heart = { obj: g, at: V(-0.9, 0.9, 0) }
   anchors.gut = { obj: g, at: V(0.6, 0.45, 0.2) }
@@ -514,13 +569,15 @@ function buildInside(scene) {
   return {
     camera: [0.6, 2.2, 5.6],
     target: [-0.3, 0.25, 0],
-    pick, anchors, highlight,
+    pick, anchors, highlight, pm,
     update(t, dt, play) {
       if (!play) return
       g.rotation.y = Math.sin(t * 0.3) * 0.5
       const s = 1 + Math.max(0, Math.sin(t * 5)) * 0.25
       chambers.forEach((c, i) => { const k = 1 + Math.max(0, Math.sin(t * 5 - i * 0.6)) * 0.35; c.scale.set(0.16, 0.1 * k, 0.1 * k) })
       heart.scale.set(1, s * 0.95 + 0.05, s * 0.95 + 0.05)
+      for (const [d, o] of blood) d.position.copy(heartCurve.getPointAt((o + t * 0.12) % 1))
+      for (const [d, c, o] of air) d.position.copy(c.getPointAt((o + t * 0.35) % 1))
     },
   }
 }
@@ -528,7 +585,7 @@ function buildInside(scene) {
 /* ---------------- جراد البحر */
 function buildCrayfish(scene) {
   lights(scene)
-  const { mat, highlight } = partMats()
+  const pm = partMats(), { mat, highlight } = pm
   const pick = [], anchors = {}
   const cf = new THREE.Group()
   cf.rotation.y = -0.5
@@ -592,9 +649,10 @@ function buildCrayfish(scene) {
   }
   // أربعة أزواج من أرجل المشي
   const legMat = mat('legs', dark)
+  const cfSteps = []
   for (const z of [-1, 1]) for (let i = 0; i < 4; i++) {
     const x = 1.25 - i * 0.28
-    limb([V(x, -0.2, z * 0.4), V(x + 0.05, 0.05, z * 0.85), V(x - 0.05, -0.58, z * 1.15)], 0.035, legMat, cf, 'legs', pick)
+    cfSteps.push([legAt(cf, [V(x, -0.2, z * 0.4), V(x + 0.05, 0.05, z * 0.85), V(x - 0.05, -0.58, z * 1.15)], 0.035, legMat, 'legs', pick), i * 0.9 + (z > 0 ? 0 : Math.PI)])
   }
   anchors.ceph = { obj: cf, at: V(0.85, 0.75, 0) }
   anchors.abd = { obj: cf, at: V(-1.2, 0.65, 0) }
@@ -609,13 +667,15 @@ function buildCrayfish(scene) {
   return {
     camera: [1.6, 3.4, 6.6],
     target: [0.4, 0, 0],
-    pick, anchors, highlight,
+    pick, anchors, highlight, pm,
     update(t, dt, play) {
       if (!play) return
       cf.rotation.y = -0.5 + Math.sin(t * 0.25) * 0.35
       for (const [f, z] of claws) f.rotation.y = z * (0.15 + Math.max(0, Math.sin(t * 1.6)) * 0.35)
       antG.rotation.y = Math.sin(t * 1.2) * 0.04
       swims.forEach((m, i) => { m.rotation.x = Math.sin(t * 4 + i * 0.5) * 0.12 })
+      for (const [g, ph] of cfSteps) g.rotation.y = Math.sin(t * 2.4 + ph) * 0.14
+      cf.position.x = Math.sin(t * 0.35) * 0.25
     },
   }
 }
@@ -647,7 +707,7 @@ function makeHopper(mat, key, wings) {
 /* ---------------- التحول غير الكامل */
 function buildHemi(scene) {
   lights(scene)
-  const { mat, highlight } = partMats()
+  const pm = partMats(), { mat, highlight } = pm
   const pick = [], anchors = {}
   const ring = new THREE.Group(); scene.add(ring)
   const base = tag(new THREE.Mesh(new THREE.CylinderGeometry(3.0, 3.1, 0.14, 64), mat('cycle', '#ecfccb')), 'cycle', pick)
@@ -691,7 +751,7 @@ function buildHemi(scene) {
   return {
     camera: [0, 3.6, 7.2],
     target: [0, 0.2, 0],
-    pick, anchors, highlight,
+    pick, anchors, highlight, pm,
     update(t, dt, play) {
       if (!play) return
       ring.rotation.y += dt * 0.18
@@ -704,7 +764,7 @@ function buildHemi(scene) {
 /* ---------------- ذوات الأرجل المئة والألف */
 function buildMyria(scene) {
   lights(scene)
-  const { mat, highlight } = partMats()
+  const pm = partMats(), { mat, highlight } = pm
   const pick = [], anchors = {}
   const ground = leaf(8.5, 3.6, '#d6d3d1'); ground.position.y = -0.4; scene.add(ground)
   // ذوات الأرجل المئة: جسم مسطح، زوج أرجل طويلة في كل قطعة
@@ -755,12 +815,14 @@ function buildMyria(scene) {
   return {
     camera: [0.4, 3.6, 5.8],
     target: [0.4, -0.2, 0.1],
-    pick, anchors, highlight,
+    pick, anchors, highlight, pm,
     update(t, dt, play) {
       if (!play) return
       for (const [lg, i, z] of cLegs) lg.rotation.y = Math.sin(t * 6 - i * 0.7) * 0.35 * z
       for (const [lg, i] of mLegs) lg.rotation.z = Math.sin(t * 3 - i * 0.5) * 0.04
       centi.position.x = Math.sin(t * 0.4) * 0.3
+      centi.children.forEach((m) => { if (m.userData.key === 'centi') m.position.z = Math.sin(t * 3 + m.position.x * 2.2) * 0.07 })
+      cLegs.forEach(([lg]) => { lg.position.z = Math.sign(lg.position.z) * 0.18 + Math.sin(t * 3 + lg.position.x * 2.2) * 0.07 })
       milli.position.x = Math.sin(t * 0.2 + 1) * 0.15
     },
   }
@@ -772,6 +834,7 @@ function hexToRgba(hex) {
 }
 
 const DARK = new Set([])
+const MOTE = { insect: '#86efac', inside: '#93c5fd', crayfish: '#7dd3fc', spider: '#c4b5fd', metamorphosis: '#fde68a', hemi: '#bef264', myria: '#d6d3d1' }
 const BUILDERS = { insect: buildInsect, inside: buildInside, crayfish: buildCrayfish, spider: buildSpider, metamorphosis: buildMeta, hemi: buildHemi, myria: buildMyria }
 
 /* ---------------- المكوّن */
@@ -785,6 +848,7 @@ export default function Scene3D({ model }) {
   const [ok, setOk] = useState(true)
   const playRef = useRef(play)
   playRef.current = play
+  const focusRef = useRef(null)
 
   const parts = useMemo(() => {
     const base = MODEL_PARTS[model.kind]?.parts || []
@@ -808,6 +872,7 @@ export default function Scene3D({ model }) {
     if (DARK.has(model.kind)) scene.add(starfield())
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 200)
     const built = build(scene)
+    const drift = motes(scene, MOTE[model.kind] || '#5eead4')
     camera.position.set(...built.camera)
     const controls = new OrbitControls(camera, renderer.domElement)
     const target = new THREE.Vector3(...(built.target || [0, 0, 0]))
@@ -816,6 +881,10 @@ export default function Scene3D({ model }) {
     controls.enablePan = false
     controls.enableZoom = false
     controls.rotateSpeed = 0.7
+    // دوران هادئ تلقائي يتوقف عند لمس النموذج ويعود بعد ثوانٍ
+    controls.autoRotate = true
+    controls.autoRotateSpeed = 0.55
+    let idleAt = 0
     const homeOff = camera.position.clone().sub(target)
     const home = camera.position.clone()
 
@@ -848,18 +917,20 @@ export default function Scene3D({ model }) {
       return h?.object.userData.key || null
     }
     let down = null
-    const onDown = (e) => { down = { x: e.clientX, y: e.clientY } }
+    const onDown = (e) => { down = { x: e.clientX, y: e.clientY }; idleAt = performance.now() + 6000 }
     const onUp = (e) => {
       if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return
       const k = hitAt(e)
-      if (k) setSel(k)
+      if (k) { setSel(k); idleAt = performance.now() + 8000 }
     }
     let lastMove = 0
     const onMove = (e) => {
       const now = performance.now()
       if (now - lastMove < 60) return
       lastMove = now
-      renderer.domElement.style.cursor = hitAt(e) ? 'pointer' : 'grab'
+      const k = hitAt(e)
+      renderer.domElement.style.cursor = k ? 'pointer' : 'grab'
+      built.pm?.hover(k)
     }
     renderer.domElement.addEventListener('pointerdown', onDown)
     renderer.domElement.addEventListener('pointerup', onUp)
@@ -872,8 +943,18 @@ export default function Scene3D({ model }) {
       raf = requestAnimationFrame(loop)
       const dt = Math.min(clock.getDelta(), 0.05)
       if (!visible) return
+      const t = clock.elapsedTime
+      controls.autoRotate = playRef.current && performance.now() > idleAt
+      // تقريب ناعم نحو الجزء المختار
+      const want = focusRef.current ? focusRef.current.clone().lerp(target, 0.55) : target
+      controls.target.lerp(want, 0.06)
       controls.update()
-      built.update(clock.elapsedTime, dt, playRef.current)
+      built.update(t, dt, playRef.current)
+      built.pm?.pulse(t)
+      if (playRef.current) drift(t, dt)
+      // ظهور النموذج بحركة لطيفة عند فتحه
+      const e = Math.min(1, t / 0.9), k = 1 - Math.pow(1 - e, 3)
+      scene.scale.setScalar(0.82 + 0.18 * k)
       renderer.render(scene, camera)
       const w = el.clientWidth, h = el.clientHeight
       camera.getWorldDirection(camDir)
@@ -892,7 +973,13 @@ export default function Scene3D({ model }) {
 
     api.current = {
       highlight: built.highlight,
-      reset: () => { camera.position.copy(home); controls.target.copy(target) },
+      focus: (key) => {
+        const a = key && built.anchors[key]
+        if (!a) { focusRef.current = null; return }
+        a.obj.updateWorldMatrix(true, false)
+        focusRef.current = a.at.clone().applyMatrix4(a.obj.matrixWorld)
+      },
+      reset: () => { camera.position.copy(home); controls.target.copy(target); focusRef.current = null },
       zoom: (f) => { const off = camera.position.clone().sub(controls.target).multiplyScalar(f); const d = off.length(); if (d > 1.5 && d < 40) camera.position.copy(controls.target).add(off) },
     }
 
@@ -912,7 +999,7 @@ export default function Scene3D({ model }) {
     }
   }, [model.kind])
 
-  useEffect(() => { api.current.highlight?.(sel) }, [sel])
+  useEffect(() => { api.current.highlight?.(sel); api.current.focus?.(sel) }, [sel])
 
   const current = parts.find((p) => p.key === sel)
 
