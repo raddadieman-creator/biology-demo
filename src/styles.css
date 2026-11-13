@@ -1076,3 +1076,6 @@ tr.clickable { cursor: pointer; } tr.clickable:hover td { background: var(--prim
 .m3-nav button:hover { border-color: var(--primary); color: var(--primary); }
 .m3-nav .num { font-size: 0.8rem; color: var(--muted); }
 @media (max-width: 900px) { .m3-info { max-height: none; } }
+
+.footer .credit { font-weight: 600; }
+.footer .credit b { font-weight: 800; color: var(--ink, inherit); }
